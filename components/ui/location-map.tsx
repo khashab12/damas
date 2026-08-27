@@ -308,7 +308,7 @@ export function LocationMap({
           <svg width="100%" height="100%" className="absolute inset-0">
             <defs>
               <pattern
-                id="expand-map-grid"
+                id="location-map-grid"
                 width="20"
                 height="20"
                 patternUnits="userSpaceOnUse"
@@ -321,7 +321,7 @@ export function LocationMap({
                 />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#expand-map-grid)" />
+            <rect width="100%" height="100%" fill="url(#location-map-grid)" />
           </svg>
         </motion.div>
 

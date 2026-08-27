@@ -1,5 +1,5 @@
-/* Styles required by components/ui/book-slider.tsx.
-   Import once (e.g. in app/globals.css: @import "../components/ui/book-slider.css";) */
+/* Styles for components/menu-book.tsx and the page components it composes.
+   Imported once from app/globals.css. */
 
 /* Single-page mode: hide the STATIC spine/gutter only.
    The .stf__*Shadow elements are the flip animation's own curl shading and
@@ -116,7 +116,7 @@
   opacity: 0.6;
 }
 
-/* ---- Printed-menu card (components/ui/menu-page.tsx) ----
+/* ---- Printed-menu card (components/ui/menu-card.tsx) ----
    11 rows plus both header bars have to fit a 375px-wide page with no
    scrolling, so every size is clamp()ed and the floor values are deliberately
    small. Colours/fonts come from the brand tokens in globals.css. */

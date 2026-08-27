@@ -3,9 +3,21 @@
 import * as React from "react";
 import Image from "next/image";
 import HTMLFlipBook from "react-pageflip";
-import { LocationMap } from "@/components/ui/expand-map";
-import { MenuPage, type MenuItem } from "@/components/ui/menu-page";
+import { LocationMap } from "@/components/ui/location-map";
+import { MenuCard } from "@/components/ui/menu-card";
 import { PageFooter } from "@/components/ui/page-footer";
+import {
+  boxItems,
+  dishItems,
+  platterItems,
+  mainItems,
+  mealItems,
+  sandwichItemsA,
+  sandwichItemsB,
+  MAINS_NOTE,
+  MEALS_NOTE,
+  SANDWICH_TAGLINE,
+} from "@/data/menu";
 
 type FlipBookApi = {
   pageFlip: () => {
@@ -23,188 +35,6 @@ const FlipBook = HTMLFlipBook as unknown as React.ComponentType<
     ref?: React.Ref<FlipBookApi>;
   }
 >;
-
-// Menu pages. Prices are in SAR, calories per serving.
-const boxItems: MenuItem[] = [
-  { name: "علبة فول كلاسك صغير", price: "2.5", calories: "220" },
-  { name: "علبة فول كلاسك وسط", price: "4", calories: "250" },
-  { name: "علبة فول كلاسك كبير", price: "6", calories: "280" },
-  { name: "علبة عجين فلافل صغير", price: "3", calories: "210" },
-  { name: "علبة عجين فلافل كبير", price: "6", calories: "250" },
-  { name: "علبة بطاطس مهروسة صغير", price: "2.5", calories: "120" },
-  { name: "علبة بطاطس مهروسة وسط", price: "4", calories: "180" },
-  { name: "علبة بطاطس مهروسة كبير", price: "6", calories: "200" },
-  { name: "علبة سلطة جبنة صغير", price: "3", calories: "180" },
-  { name: "علبة سلطة جبنة وسط", price: "4", calories: "200" },
-  { name: "علبة سلطة جبنة كبير", price: "6", calories: "220" },
-];
-
-const dishItems: MenuItem[] = [
-  { name: "فلافل 2 حبة", price: "1", calories: "120" },
-  { name: "حبة بيض مسلوق", price: "1.5", calories: "50" },
-  { name: "طبق بيض اومليت وسط", price: "4", calories: "100" },
-  { name: "طبق بيض اومليت كبير", price: "6", calories: "200" },
-  { name: "بطاطس شبتي / أو صوابع صغير", price: "3", calories: "250" },
-  { name: "بطاطس شبتي / أو صوابع كبير", price: "6", calories: "300" },
-  { name: "بطاطس شبتي بالجبن", price: "3", calories: "250" },
-];
-
-const platterItems: MenuItem[] = [
-  { name: "علبة بابا غنوج صغير", price: "2.5", calories: "120" },
-  { name: "علبة بابا غنوج وسط", price: "4", calories: "160" },
-  { name: "علبة بابا غنوج كبير", price: "6", calories: "200" },
-  { name: "علبة مسقعة صغير", price: "2.5", calories: "130" },
-  { name: "علبة مسقعة وسط", price: "4", calories: "170" },
-  { name: "علبة مسقعة كبير", price: "6", calories: "250" },
-  { name: "علبة باذنجان حار صغير", price: "2.5", calories: "120" },
-  { name: "علبة باذنجان حار وسط", price: "4", calories: "180" },
-  { name: "علبة باذنجان حار كبير", price: "6", calories: "260" },
-];
-
-const mainItems: MenuItem[] = [
-  { name: "طبق مشكل مقالي كبير", price: "15", calories: "300" },
-  { name: "طبق مشكل صغير", price: "10", calories: "250" },
-  { name: "طبق ايدام صغير", price: "3", calories: "180" },
-  { name: "طبق ايدام وسط", price: "5", calories: "200" },
-  { name: "طبق ايدام كبير", price: "7", calories: "220" },
-];
-
-// Long item names here; rows are allowed to wrap to two or three lines.
-const mealItems: MenuItem[] = [
-  {
-    name: "نص دجاج مقلي مع نفر رز وخضار وسلطة وشورية",
-    price: "26",
-    calories: "1060",
-  },
-  {
-    name: "ربع دجاج مقلي مع نفر رز وخضار وسلطة وشورية",
-    price: "15",
-    calories: "710",
-  },
-  {
-    name: "ربع دجاج فرن مع بطاطس ونفر رز وسلطة وشورية",
-    price: "26",
-    calories: "1100",
-  },
-  {
-    name: "نص دجاج فرن مع بطاطس ونفر رز وسلطة وشورية",
-    price: "15",
-    calories: "820",
-  },
-  {
-    name: "طاجن بطاطس باللحم مع نفر رز وسلطة وشورية",
-    price: "25",
-    calories: "780",
-  },
-];
-
-// Sandwiches. `subtitle` carries the ingredients line; the last four items on
-// page two deliberately have none.
-const sandwichItemsA: MenuItem[] = [
-  {
-    name: "ساندوتش فول كلاسك",
-    subtitle: "(فول + سلطة)",
-    price: "2",
-    calories: "250",
-  },
-  {
-    name: "ساندوتش فول بالبيض",
-    subtitle: "(فول + بيض + سلطة)",
-    price: "3",
-    calories: "335",
-  },
-  {
-    name: "ساندوتش فلافل كلاسك",
-    subtitle: "(فلافل + سلطة)",
-    price: "2",
-    calories: "280",
-  },
-  {
-    name: "ساندوتش مشكل فلافل",
-    subtitle: "(فلافل + سلطة + بطاطس + باذنجان)",
-    price: "3",
-    calories: "400",
-  },
-  {
-    name: "ساندوتش مشكل فلافل بالبيض",
-    subtitle: "(فلافل + سلطة)",
-    price: "4",
-    calories: "470",
-  },
-  {
-    name: "ساندوتش مشكل صبة",
-    subtitle: "(فلافل + جبنة مصفقة + بطاطس مهروسة + صوابع)",
-    price: "5",
-    calories: "660",
-  },
-  {
-    name: "ساندوتش مشكل (ديناميت)",
-    subtitle: "(فلافل + جبنة مصفقة + بطاطس مهروسة + صوابع + بيض)",
-    price: "6",
-    calories: "740",
-  },
-  {
-    name: "ساندوتش بطاطس صوابع",
-    subtitle: "(بطاطس صوابع + سلطة)",
-    price: "3",
-    calories: "280",
-  },
-  {
-    name: "ساندوتش بطاطس شيبسي",
-    subtitle: "(بطاطس شيبسي + سلطة)",
-    price: "3",
-    calories: "250",
-  },
-];
-
-const sandwichItemsB: MenuItem[] = [
-  {
-    name: "ساندوتش بيض مسلوق",
-    subtitle: "(بيض مسلوق + سلطة)",
-    price: "5",
-    calories: "330",
-  },
-  {
-    name: "ساندوتش بيض اوملیت",
-    subtitle: "(بيض اومليت + سلطة)",
-    price: "4",
-    calories: "230",
-  },
-  {
-    name: "ساندوتش جبنة بالسلطة",
-    subtitle: "(جبنة + سلطة)",
-    price: "3",
-    calories: "220",
-  },
-  {
-    name: "ساندوتش بابا غنوج",
-    subtitle: "(بابا غنوج + سلطة)",
-    price: "2",
-    calories: "250",
-  },
-  {
-    name: "ساندوتش زهرة",
-    subtitle: "(زهرة + سلطة)",
-    price: "2",
-    calories: "250",
-  },
-  {
-    name: "ساندوتش عجة",
-    subtitle: "(عجة بالبيض + سلطة)",
-    price: "5",
-    calories: "350",
-  },
-  { name: "ساندوتش جبنة بالسلطة بالبيض", price: "4", calories: "300" },
-  { name: "ساندوتش بطاطس صوابع بالبيض", price: "5", calories: "350" },
-  { name: "ساندوتش بطاطس شيبسي بالبيض", price: "5", calories: "350" },
-  { name: "ساندوتش بتنجان مقلي مع سلطة وطحينة", price: "2", calories: "230" },
-  { name: "ساندوتش بطاطس بانية مع سلطة وطحينة", price: "3", calories: "300" },
-];
-
-// Notes shown under the rows of their respective menu pages.
-const MAINS_NOTE = "يوجد كل يوم ثلاثة أصناف إضافية متنوعة حسب أسبقية الحجز";
-const MEALS_NOTE = "(بامية أو خضار مشكل أو بازلا حسب الطلب)";
-const SANDWICH_TAGLINE = "فول وفلافل ولاد البلد على اصوله";
 
 // Third inner page: offers. Images are 1080x1080 (1:1); the rendered size is
 // constrained in CSS so both fit the page at 375px.
@@ -229,7 +59,7 @@ const MAX_WIDTH = 390; // < MIN_WIDTH * 2 (400)
 const MIN_HEIGHT = 270;
 const MAX_HEIGHT = 527;
 
-function Component() {
+function MenuBook() {
   // react-pageflip touches `document` during init, so only render on the client.
   const [mounted, setMounted] = React.useState(false);
   const bookRef = React.useRef<FlipBookApi | null>(null);
@@ -328,28 +158,28 @@ function Component() {
 
       <div key="menu-boxes" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage title="علب الطعام" items={boxItems} />
+          <MenuCard title="علب الطعام" items={boxItems} />
         </div>
         <PageFooter />
       </div>,
 
       <div key="menu-dishes" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage title="الأطباق والوجبات" items={dishItems} />
+          <MenuCard title="الأطباق والوجبات" items={dishItems} />
         </div>
         <PageFooter />
       </div>,
 
       <div key="menu-platters" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage title="أطباق وعلب" items={platterItems} />
+          <MenuCard title="أطباق وعلب" items={platterItems} />
         </div>
         <PageFooter />
       </div>,
 
       <div key="menu-mains" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage
+          <MenuCard
             title="الأطباق الرئيسية"
             items={mainItems}
             note={MAINS_NOTE}
@@ -360,7 +190,7 @@ function Component() {
 
       <div key="menu-meals" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage
+          <MenuCard
             title="الوجبات والطواجن"
             items={mealItems}
             note={MEALS_NOTE}
@@ -371,7 +201,7 @@ function Component() {
 
       <div key="menu-sandwiches-a" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage
+          <MenuCard
             title="الساندوتشات ١"
             items={sandwichItemsA}
             className="menu-card--dense"
@@ -382,7 +212,7 @@ function Component() {
 
       <div key="menu-sandwiches-b" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuPage
+          <MenuCard
             title="الساندوتشات ٢"
             items={sandwichItemsB}
             note={SANDWICH_TAGLINE}
@@ -522,4 +352,4 @@ function Component() {
   );
 }
 
-export default Component;
+export default MenuBook;

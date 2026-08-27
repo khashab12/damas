@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "../components/ui/book-slider.css";
+@import "../components/menu-book.css";
 
 :root {
   --background: #ffffff;
@@ -19,8 +19,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 
   /* Exposed as Tailwind tokens too: bg-brand-red, text-brand-gold, etc. */
   --color-brand-red: var(--brand-red);

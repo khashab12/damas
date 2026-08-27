@@ -11,7 +11,7 @@ export type MenuItem = {
   calories: string;
 };
 
-interface MenuPageProps {
+interface MenuCardProps {
   title: string;
   items: MenuItem[];
   /** Optional small muted note rendered under the rows. */
@@ -27,7 +27,7 @@ interface MenuPageProps {
  * (--brand-red, --brand-gold, --font-tajawal, --font-cairo); nothing is
  * hardcoded here.
  */
-export function MenuPage({ title, items, note, className }: MenuPageProps) {
+export function MenuCard({ title, items, note, className }: MenuCardProps) {
   return (
     <div className={`menu-card ${className ?? ""}`} dir="rtl">
       <div className="menu-card-head">{title}</div>
@@ -64,4 +64,4 @@ export function MenuPage({ title, items, note, className }: MenuPageProps) {
   );
 }
 
-export default MenuPage;
+export default MenuCard;
