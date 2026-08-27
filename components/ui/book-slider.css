@@ -1,0 +1,472 @@
+/* Styles required by components/ui/book-slider.tsx.
+   Import once (e.g. in app/globals.css: @import "../components/ui/book-slider.css";) */
+
+/* Single-page mode: hide the STATIC spine/gutter only.
+   The .stf__*Shadow elements are the flip animation's own curl shading and
+   must stay visible, otherwise pages turn flat with no depth. */
+.book-shell .stf__parent,
+.book-shell .stf__block,
+.book-shell .stf__wrapper {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Static gutter pseudo-elements only. Nothing here touches .stf__item itself,
+   so the library keeps full control of its flip transforms. */
+.book-shell .stf__item::after,
+.book-shell .stf__item::before {
+  display: none !important;
+}
+
+/* ---- Stage / sizing ----------------------------------------------------
+   ROOT CAUSE: react-pageflip's size="stretch" derives height from container
+   WIDTH and the page ratio only -- it never looks at available height, so on
+   short screens the book grew taller than the viewport.
+
+   Fix: cap the shell by BOTH axes. max-width is the smaller of the design cap
+   and the width implied by the height actually available. Because the book
+   keeps a fixed 370:500 ratio, capping width also bounds height -- no
+   max-height needed (that would clip the box the library measures).
+   dvh, not vh, so mobile browser chrome is accounted for. */
+.book-stage {
+  --stage-pad: clamp(6px, 1.6vh, 22px);
+  --stage-safe: env(safe-area-inset-bottom, 0px);
+  --book-ratio: 0.74; /* 370 / 500 */
+  --stage-avail-h: calc(100dvh - (var(--stage-pad) * 2) - var(--stage-safe));
+
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--stage-pad) clamp(8px, 3vw, 24px);
+  padding-bottom: calc(var(--stage-pad) + var(--stage-safe));
+  background: #18181b;
+}
+
+.book-shell {
+  overflow-x: hidden;
+  max-width: min(390px, calc(var(--stage-avail-h) * var(--book-ratio)));
+}
+
+.page {
+  --page-footer-h: 0px;
+  position: relative;
+  /* Warm off-white for every page... */
+  background: #faf6f0;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* ...except the cover, which is the video. Kept dark so no warm edge shows
+   through behind it before the first frame paints. */
+.page.page-cover {
+  background: #000000;
+  border-color: #000000;
+}
+
+/* Pages carrying the shared contact strip reserve its height. */
+.page.with-footer {
+  --page-footer-h: clamp(15px, 5.3cqw, 23px);
+}
+
+.page-content {
+  /* Size container: type inside a page sizes in cqw (1% of this box's width)
+     rather than vw. vw tracks the VIEWPORT, so in landscape -- wide viewport,
+     narrow height-constrained book -- type scaled up while its container
+     shrank and overflowed every page.
+     This must NOT go on .page: container-type applies layout containment and
+     .page is measured/positioned by react-pageflip. .page-content is ours. */
+  container-type: inline-size;
+  width: 100%;
+  height: 100%;
+  padding: clamp(0.75rem, 4.24cqw, 1.5rem);
+  padding-bottom: calc(clamp(0.5rem, 2.54cqw, 0.9rem) + var(--page-footer-h));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ---- Shared contact strip (components/ui/page-footer.tsx) ----
+   Absolutely positioned so it sits flush at the bottom; .page has
+   overflow:hidden + border-radius, so it inherits the rounded corners. */
+.page-footer {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--page-footer-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.3rem, 1.7cqw, 0.6rem);
+  background: var(--brand-red);
+  color: #ffffff;
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.42rem, 2.07cqw, 0.62rem);
+  line-height: 1;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.page-footer-sep {
+  opacity: 0.6;
+}
+
+/* ---- Printed-menu card (components/ui/menu-page.tsx) ----
+   11 rows plus both header bars have to fit a 375px-wide page with no
+   scrolling, so every size is clamp()ed and the floor values are deliberately
+   small. Colours/fonts come from the brand tokens in globals.css. */
+
+.menu-card {
+  direction: rtl;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf9;
+  /* Thin gold hairline, tinted from --brand-gold. */
+  border: 1px solid rgba(210, 156, 66, 0.35);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+}
+
+.menu-card-head {
+  background: linear-gradient(
+    to left,
+    var(--brand-gold),
+    var(--brand-gold-deep)
+  );
+  color: #ffffff;
+  font-family: var(--font-tajawal), "Tajawal", sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 4.45cqw, 1.25rem);
+  line-height: 1.35;
+  text-align: center;
+  padding: clamp(0.3rem, 1.8cqw, 0.6rem) clamp(0.4rem, 2.12cqw, 0.8rem);
+}
+
+.menu-card-body {
+  padding: clamp(0.2rem, 1.06cqw, 0.45rem) clamp(0.3rem, 1.7cqw, 0.7rem)
+    clamp(0.3rem, 1.48cqw, 0.6rem);
+}
+
+/* name | price | calories. Fixed-ish price/calorie columns keep the numbers
+   aligned however long the item name is. */
+/* `stretch`, not `center`: names on the الوجبات والطواجن page wrap to two or
+   three lines, and stretched cells keep the column separators running the full
+   height of whatever the tallest cell in that row turns out to be. Each cell
+   then centres its own content vertically. */
+.menu-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    clamp(44px, 16.96cqw, 64px)
+    clamp(38px, 14.84cqw, 56px);
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 1px solid #efe6d6;
+  padding: clamp(0.2rem, 1.11cqw, 0.36rem) 0;
+}
+
+.menu-row:last-child {
+  border-bottom: none;
+}
+
+.menu-row-head {
+  border-bottom: 1px solid #e2d6bf;
+  padding-bottom: clamp(0.12rem, 0.64cqw, 0.26rem);
+}
+
+.menu-row-head .menu-cell-price,
+.menu-row-head .menu-cell-cal {
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.46rem, 2.12cqw, 0.62rem);
+  color: var(--brand-muted);
+  line-height: 1.25;
+}
+
+/* Ingredients line under the item name. Brand red, smaller and lighter than
+   the name itself. */
+.menu-name-sub {
+  display: block;
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-weight: 400;
+  font-size: clamp(0.42rem, 2.01cqw, 0.6rem);
+  line-height: 1.25;
+  color: var(--brand-red);
+  margin-top: 0.1em;
+}
+
+.menu-name-text {
+  display: block;
+}
+
+.menu-cell-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  font-family: var(--font-tajawal), "Tajawal", sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.63rem, 3.18cqw, 0.86rem);
+  color: var(--brand-ink);
+  line-height: 1.3;
+  text-align: right;
+  padding-inline: clamp(0.15rem, 0.85cqw, 0.4rem);
+  /* Wrap between words; never split a word mid-glyph. */
+  overflow-wrap: break-word;
+  word-break: normal;
+  min-width: 0;
+}
+
+/* Thin separators between the three columns. In RTL the name column sits on
+   the right, so a start-edge border falls between name and price. */
+.menu-cell-price,
+.menu-cell-cal {
+  border-inline-start: 1px solid #ece2d0;
+}
+
+.menu-cell-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  color: var(--brand-red);
+  text-align: center;
+  padding-inline: clamp(0.1rem, 0.53cqw, 0.25rem);
+  white-space: nowrap;
+}
+
+.menu-price-value {
+  font-weight: 700;
+  font-size: clamp(0.63rem, 3.07cqw, 0.84rem);
+  line-height: 1.25;
+}
+
+.menu-price-unit {
+  font-weight: 600;
+  font-size: clamp(0.42rem, 2.01cqw, 0.56rem);
+  opacity: 0.85;
+}
+
+.menu-cell-cal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.55rem, 2.65cqw, 0.74rem);
+  color: var(--brand-muted);
+  text-align: center;
+  line-height: 1.25;
+  padding-inline: clamp(0.1rem, 0.53cqw, 0.25rem);
+  white-space: nowrap;
+}
+
+/* Small muted note under the rows (last menu page only). Deliberately
+   smaller than the row text. */
+.menu-note {
+  margin-top: clamp(0.25rem, 1.48cqw, 0.5rem);
+  padding: 0 clamp(0.2rem, 1.06cqw, 0.5rem);
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.5rem, 2.39cqw, 0.67rem);
+  line-height: 1.45;
+  color: var(--brand-muted);
+  text-align: center;
+}
+
+/* Dense variant for the sandwich pages: 9 and 11 rows, most carrying a second
+   ingredients line, have to fit the same 397px at 375px. Everything steps down
+   and the number columns narrow to give the names more room. */
+.menu-card--dense .menu-card-head {
+  font-size: clamp(0.82rem, 4.03cqw, 1.12rem);
+  padding: clamp(0.18rem, 1.17cqw, 0.4rem) clamp(0.3rem, 1.7cqw, 0.6rem);
+}
+
+.menu-card--dense .menu-card-body {
+  padding: clamp(0.12rem, 0.64cqw, 0.3rem) clamp(0.22rem, 1.27cqw, 0.5rem)
+    clamp(0.18rem, 0.95cqw, 0.4rem);
+}
+
+.menu-card--dense .menu-row {
+  grid-template-columns:
+    minmax(0, 1fr)
+    clamp(36px, 13.78cqw, 52px)
+    clamp(30px, 11.66cqw, 44px);
+  padding: clamp(0.13rem, 0.74cqw, 0.28rem) 0;
+}
+
+.menu-card--dense .menu-row-head .menu-cell-price,
+.menu-card--dense .menu-row-head .menu-cell-cal {
+  font-size: clamp(0.4rem, 1.91cqw, 0.54rem);
+}
+
+.menu-card--dense .menu-cell-name {
+  font-size: clamp(0.57rem, 2.88cqw, 0.79rem);
+  line-height: 1.22;
+}
+
+.menu-card--dense .menu-name-sub {
+  font-size: clamp(0.41rem, 2.04cqw, 0.57rem);
+  line-height: 1.15;
+}
+
+.menu-card--dense .menu-price-value {
+  font-size: clamp(0.57rem, 2.81cqw, 0.78rem);
+}
+
+.menu-card--dense .menu-price-unit {
+  font-size: clamp(0.37rem, 1.75cqw, 0.5rem);
+}
+
+.menu-card--dense .menu-cell-cal {
+  font-size: clamp(0.44rem, 2.07cqw, 0.6rem);
+}
+
+.menu-card--dense .menu-note {
+  font-size: clamp(0.45rem, 2.12cqw, 0.62rem);
+  margin-top: clamp(0.2rem, 1.17cqw, 0.4rem);
+}
+
+/* Page wrapper: centres the card and never lets it overflow the page. */
+.menu-sheet {
+  direction: rtl;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* ---- Offers page ----
+   Sits inside the shared .menu-card, so the gold header bar, card radius and
+   shadow are identical to the menu pages. Only the body differs. */
+
+.offers-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.3rem, 1.7cqw, 0.6rem);
+  min-height: 0;
+}
+
+/* Source is square (1080x1080). Width and height are driven by the SAME clamp
+   so both images render at identical dimensions -- no drift between them --
+   and object-fit: contain guarantees nothing is cropped. The ceiling keeps
+   header + two images + the footer inside the page at 375px. */
+.offer-img {
+  width: clamp(104px, 44.52cqw, 168px);
+  height: clamp(104px, 44.52cqw, 168px);
+  max-width: 100%;
+  object-fit: contain;
+  /* Matches .menu-card's radius and shadow. */
+  border-radius: 0.75rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  display: block;
+}
+
+/* ---- Location page (fourth inner page) ---- */
+
+.map-page {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* Same visual weight as .menu-title / .cal-title / .offers-title. */
+.map-title {
+  font-family: var(--font-tajawal), "Tajawal", sans-serif;
+  font-weight: 700;
+  font-size: clamp(1rem, 4.88cqw, 1.5rem);
+  color: #1f2937;
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: clamp(0.4rem, 2.12cqw, 0.9rem);
+}
+
+/* Caps the fluid card and reserves room for the hover hint that sits just
+   below it, so the page never has to clip it. */
+.map-holder {
+  width: 100%;
+  max-width: 320px;
+  padding-bottom: clamp(0.9rem, 4.24cqw, 1.2rem);
+}
+
+/* Text inside the LocationMap: Cairo, RTL, clamp()-sized. No font-mono on the
+   coordinates line - it carries Arabic text, not coordinates. */
+.map-location {
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.62rem, 2.86cqw, 0.85rem);
+  line-height: 1.35;
+  text-align: right;
+}
+
+.map-coords {
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.55rem, 2.44cqw, 0.72rem);
+  line-height: 1.35;
+  text-align: right;
+}
+
+.map-status {
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.5rem, 2.12cqw, 0.62rem);
+}
+
+.map-hint {
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.5rem, 2.12cqw, 0.62rem);
+}
+
+.map-btn {
+  display: inline-block;
+  margin-top: clamp(0.3rem, 1.7cqw, 0.6rem);
+  padding: clamp(0.3rem, 1.7cqw, 0.5rem) clamp(0.9rem, 4.77cqw, 1.5rem);
+  border-radius: 9999px;
+  background: var(--brand-red);
+  color: #ffffff;
+  font-family: var(--font-tajawal), "Tajawal", sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.62rem, 2.86cqw, 0.85rem);
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.map-btn:hover {
+  background: var(--brand-red-dark);
+}
+
+/* Pre-mount placeholder: same footprint as the real book so nothing shifts. */
+.book-placeholder {
+  max-width: 390px;
+  max-height: var(--stage-avail-h, 527px);
+}
+
+/* ---- Cover ---- */
+
+/* Fills the page edge to edge; radius matches .page so the corners line up. */
+.cover-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  background: #000000;
+}
