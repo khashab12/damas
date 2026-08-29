@@ -1,6 +1,8 @@
 "use client";
 
 export type MenuItem = {
+  /** Stable catalogue id. The order API prices items by this, never by name. */
+  id: string;
   /** اسم الصنف */
   name: string;
   /** المكونات - سطر صغير تحت الاسم، اختياري */
@@ -40,7 +42,7 @@ export function MenuCard({ title, items, note, className }: MenuCardProps) {
         </div>
 
         {items.map((item) => (
-          <div className="menu-row" key={item.name}>
+          <div className="menu-row" key={item.id}>
             {/* The name cell is a column so an optional ingredients line can
                 sit under the name without affecting the price/calorie
                 columns; rows with and without a subtitle stay aligned. */}

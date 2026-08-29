@@ -470,3 +470,104 @@
   border-radius: 0.5rem;
   background: #000000;
 }
+
+/* ---- Order result pages (app/order/success, app/order/failed) ---- */
+
+.order-result {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 5vw, 32px);
+  background: #18181b;
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+}
+
+.order-result-card {
+  width: 100%;
+  max-width: 390px;
+  background: #faf6f0;
+  border: 1px solid rgba(210, 156, 66, 0.35);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: clamp(1rem, 6vw, 2rem);
+  text-align: center;
+}
+
+.order-result-badge {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto clamp(0.6rem, 3vw, 1rem);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.order-result-badge--ok {
+  background: linear-gradient(
+    to left,
+    var(--brand-gold),
+    var(--brand-gold-deep)
+  );
+}
+
+.order-result-badge--fail {
+  background: var(--brand-red);
+}
+
+.order-result-title {
+  font-family: var(--font-tajawal), "Tajawal", sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 5vw, 1.5rem);
+  color: var(--brand-ink);
+  margin-bottom: 0.4rem;
+}
+
+.order-result-text {
+  font-size: clamp(0.75rem, 3.4vw, 0.95rem);
+  line-height: 1.6;
+  color: var(--brand-muted);
+}
+
+.order-result-summary {
+  margin: clamp(0.8rem, 4vw, 1.4rem) 0;
+  border-top: 1px solid #ece2d0;
+}
+
+.order-result-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(0.4rem, 2vw, 0.6rem) 0;
+  border-bottom: 1px solid #ece2d0;
+  font-size: clamp(0.75rem, 3.2vw, 0.9rem);
+  color: var(--brand-ink);
+}
+
+.order-result-row span {
+  color: var(--brand-muted);
+}
+
+.order-result-btn {
+  display: inline-block;
+  margin-top: clamp(0.4rem, 2vw, 0.8rem);
+  padding: clamp(0.4rem, 2vw, 0.6rem) clamp(1rem, 5vw, 1.6rem);
+  border-radius: 9999px;
+  background: var(--brand-red);
+  color: #ffffff;
+  font-family: var(--font-tajawal), "Tajawal", sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.75rem, 3.2vw, 0.9rem);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.order-result-btn:hover {
+  background: var(--brand-red-dark);
+}
