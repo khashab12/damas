@@ -1,5 +1,7 @@
 "use client";
 
+import { QtyStepper } from "@/components/cart/qty-stepper";
+
 export type MenuItem = {
   /** Stable catalogue id. The order API prices items by this, never by name. */
   id: string;
@@ -47,10 +49,20 @@ export function MenuCard({ title, items, note, className }: MenuCardProps) {
                 sit under the name without affecting the price/calorie
                 columns; rows with and without a subtitle stay aligned. */}
             <span className="menu-cell-name">
-              <span className="menu-name-text">{item.name}</span>
-              {item.subtitle ? (
-                <span className="menu-name-sub">{item.subtitle}</span>
-              ) : null}
+              {/* Text stack and stepper sit side by side INSIDE the name cell,
+                  so the 3-column grid - and the price/calorie alignment -
+                  is untouched. */}
+              <span className="menu-name-stack">
+                <span className="menu-name-text">{item.name}</span>
+                {item.subtitle ? (
+                  <span className="menu-name-sub">{item.subtitle}</span>
+                ) : null}
+              </span>
+              <QtyStepper
+                id={item.id}
+                name={item.name}
+                price={Number(item.price)}
+              />
             </span>
             <span className="menu-cell-price">
               <span className="menu-price-value">{item.price}</span>
