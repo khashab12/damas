@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { orderStore } from "@/lib/orders/store";
+import { ClearCartOnSuccess } from "@/components/cart/clear-cart-on-success";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,8 @@ export default async function OrderSuccessPage({
 
   return (
     <main className="order-result" dir="rtl">
+      {/* Confirmed payment is the ONLY thing that empties the cart. */}
+      <ClearCartOnSuccess paid={order?.status === "paid"} />
       <div className="order-result-card">
         <div className="order-result-badge order-result-badge--ok">✓</div>
         <h1 className="order-result-title">تم استلام طلبك</h1>

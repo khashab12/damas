@@ -23,12 +23,66 @@ type CartContextValue = {
 
 const CartContext = React.createContext<CartContextValue | null>(null);
 
+const STORAGE_KEY = "damas.cart.v1";
+
+/** sessionStorage may throw (private mode, disabled storage); never let it break the cart. */
+function readStoredCart(): CartLine[] {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (l): l is CartLine =>
+        typeof l === "object" &&
+        l !== null &&
+        typeof (l as CartLine).id === "string" &&
+        typeof (l as CartLine).name === "string" &&
+        typeof (l as CartLine).price === "number" &&
+        Number.isInteger((l as CartLine).qty) &&
+        (l as CartLine).qty > 0,
+    );
+  } catch {
+    return [];
+  }
+}
+
 /**
- * Session-only cart. Deliberately no localStorage/sessionStorage: the cart
- * lives in memory for this page visit and is gone on reload.
+ * Cart persisted in sessionStorage, so it survives the redirect out to the
+ * payment provider and back — a failed payment returns to a full cart.
+ *
+ * sessionStorage, not localStorage: it is scoped to the tab and clears when
+ * the tab closes, so a stale cart never greets a different customer on a
+ * shared device.
+ *
+ * It is cleared ONLY on a confirmed successful payment (see
+ * components/cart/clear-cart-on-success.tsx). Submitting an order does not
+ * clear it, because the payment has not succeeded yet at that point.
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = React.useState<CartLine[]>([]);
+
+  // Restored after mount, not in a lazy initialiser: the server renders an
+  // empty cart, so reading storage during the first client render would
+  // produce a hydration mismatch.
+  React.useEffect(() => {
+    const stored = readStoredCart();
+    // Restoring after mount necessarily means setting state in an effect;
+    // reading storage during render would desync server and client HTML.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored.length > 0) setLines(stored);
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      // Drop the key entirely when empty rather than persisting "[]", so an
+      // emptied cart leaves no trace behind.
+      if (lines.length === 0) sessionStorage.removeItem(STORAGE_KEY);
+      else sessionStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+    } catch {
+      // Storage full or unavailable: the in-memory cart still works.
+    }
+  }, [lines]);
 
   const add: CartContextValue["add"] = React.useCallback((item) => {
     setLines((prev) => {
@@ -50,7 +104,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const clear = React.useCallback(() => setLines([]), []);
+  const clear = React.useCallback(() => {
+    setLines([]);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const value = React.useMemo<CartContextValue>(() => {
     const totalCount = lines.reduce((n, l) => n + l.qty, 0);

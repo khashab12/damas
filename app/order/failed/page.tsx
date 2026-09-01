@@ -27,7 +27,12 @@ export default async function OrderFailedPage({
           </div>
         ) : null}
 
+        {/* The cart is still in sessionStorage, so this returns the customer
+            to the book with every line intact. */}
         <Link className="order-result-btn" href="/">
+          العودة للطلب
+        </Link>
+        <Link className="order-result-link" href="/">
           العودة إلى القائمة
         </Link>
       </div>

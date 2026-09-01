@@ -13,7 +13,7 @@ import { sar, useCart } from "./cart-context";
  * sheet overlays the book.
  */
 export function CartBar() {
-  const { lines, totalCount, totalPrice, add, remove, clear } = useCart();
+  const { lines, totalCount, totalPrice, add, remove } = useCart();
   const [open, setOpen] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -49,7 +49,9 @@ export function CartBar() {
         setError(data?.message ?? "تعذّر إنشاء الطلب.");
         return;
       }
-      clear();
+      // The cart is deliberately NOT cleared here: payment has not succeeded
+      // yet. It is cleared on the success page once the order is confirmed
+      // paid, so a failed payment returns the customer to a full cart.
       // With a provider wired up we would follow data.redirectUrl.
       router.push(
         data.redirectUrl

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Tajawal, Cairo } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/components/cart/cart-context";
 
 // Arabic menu page: Tajawal for headings, Cairo for body text.
 const tajawal = Tajawal({
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${tajawal.variable} ${cairo.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }
