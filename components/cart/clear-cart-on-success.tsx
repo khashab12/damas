@@ -4,11 +4,10 @@ import * as React from "react";
 import { useCart } from "./cart-context";
 
 /**
- * Clears the cart, and only on a CONFIRMED successful payment.
+ * Clears the cart, and only once the server says the order is confirmed.
  *
- * The success page renders this with the order's server-side status. A merely
- * "pending" order does not clear anything — the customer may still end up on
- * the failure path, and must get their cart back if they do.
+ * The success page passes the order's server-side status, so an unknown or
+ * missing order id leaves the cart untouched and the customer can retry.
  */
 export function ClearCartOnSuccess({ paid }: { paid: boolean }) {
   const { clear } = useCart();

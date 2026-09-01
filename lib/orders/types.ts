@@ -1,6 +1,7 @@
 /** Order domain types. Money is always integer halalas (1 SAR = 100 halalas). */
 
-export type OrderStatus = "pending" | "paid" | "failed";
+/** Cash on delivery/pickup: an order is confirmed the moment it is placed. */
+export type OrderStatus = "confirmed";
 
 /** How the customer receives the order. */
 export type Fulfilment = "delivery" | "pickup";
@@ -26,22 +27,15 @@ export type Order = {
   /** Required for delivery, null for pickup. */
   address: string | null;
   note: string | null;
-  /** Rendered Arabic message sent to the restaurant. Null until paid. */
-  notificationMessage: string | null;
-  /** Provider's reference, once a payment has been created. */
-  paymentReference: string | null;
+  /** Rendered Arabic message sent to the restaurant on creation. */
+  notificationMessage: string;
   createdAt: string;
   updatedAt: string;
 };
 
 export interface OrderStore {
-  create(
-    order: Omit<Order, "createdAt" | "updatedAt" | "status"> & {
-      status?: OrderStatus;
-    },
-  ): Promise<Order>;
+  /** Persists a fully-formed order. The caller owns id and timestamps so the
+   *  notification can be rendered before the single write. */
+  create(order: Order): Promise<Order>;
   get(id: string): Promise<Order | null>;
-  markPaid(id: string, notificationMessage: string): Promise<Order | null>;
-  markFailed(id: string): Promise<Order | null>;
-  setPaymentReference(id: string, reference: string): Promise<Order | null>;
 }

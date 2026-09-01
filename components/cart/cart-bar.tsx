@@ -72,15 +72,9 @@ export function CartBar() {
         setError(data?.message ?? "تعذّر إنشاء الطلب.");
         return;
       }
-      // The cart is deliberately NOT cleared here: payment has not succeeded
-      // yet. It is cleared on the success page once the order is confirmed
-      // paid, so a failed payment returns the customer to a full cart.
-      // With a provider wired up we would follow data.redirectUrl.
-      router.push(
-        data.redirectUrl
-          ? data.redirectUrl
-          : `/order/success?id=${encodeURIComponent(data.orderId)}`,
-      );
+      // Cleared on the success page once the server confirms the order, so a
+      // network failure here leaves the cart intact for a retry.
+      router.push(`/order/success?id=${encodeURIComponent(data.orderId)}`);
     } catch {
       setError("تعذّر الاتصال بالخادم.");
     } finally {

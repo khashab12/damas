@@ -47,7 +47,7 @@ export function formatOrderMessage(order: Order): string {
     `الإجمالي: ${riyals(order.totalHalalas)} ريال`,
     order.note ? `ملاحظات: ${order.note}` : null,
     "",
-    "حالة الدفع: مدفوع ✅",
+    "الدفع: عند الاستلام 💵",
   ]
     .filter((line): line is string => line !== null)
     .join("\n");

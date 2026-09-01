@@ -6,19 +6,19 @@ import {
   priceOrder,
   UnknownItemsError,
 } from "@/lib/orders/pricing";
-import {
-  createPayment,
-  isPaymentConfigured,
-  PaymentNotConfiguredError,
-} from "@/lib/payment";
+import { formatOrderMessage, notifier } from "@/lib/notify";
+import type { Order } from "@/lib/orders/types";
 
-// node:sqlite and the payment adapter are Node-only.
 export const runtime = "nodejs";
 
 /**
  * POST /api/orders
  *
- * Body: { items: [{ itemId, quantity }], customerName?, customerPhone?, note? }
+ * Cash on delivery/pickup: there is no payment step, so an order is confirmed
+ * the moment it is placed and the restaurant is notified immediately.
+ *
+ * Body: { items: [{ itemId, quantity }], customerName, customerPhone,
+ *         fulfilment, address?, note? }
  * Prices are never read from the request; the total is recomputed server-side.
  */
 export async function POST(request: Request) {
@@ -64,9 +64,12 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  const order = await orderStore.create({
+  // id and timestamps are minted here so the Arabic message can be rendered
+  // before the write — one insert, not an insert plus an update.
+  const now = new Date().toISOString();
+  const draft: Order = {
     id: generateOrderId(),
-    status: "pending",
+    status: "confirmed",
     lines: priced.lines,
     totalHalalas: priced.totalHalalas,
     customerName: parsed.data.customerName,
@@ -74,26 +77,24 @@ export async function POST(request: Request) {
     fulfilment: parsed.data.fulfilment,
     address: parsed.data.address ?? null,
     note: parsed.data.note ?? null,
-    notificationMessage: null,
-    paymentReference: null,
-  });
+    notificationMessage: "",
+    createdAt: now,
+    updatedAt: now,
+  };
 
-  // Payment is the single integration point. The order is already persisted as
-  // pending, so a missing provider degrades cleanly instead of losing the order.
-  let redirectUrl: string | null = null;
-  let paymentError: string | null = null;
+  const order: Order = {
+    ...draft,
+    notificationMessage: formatOrderMessage(draft),
+  };
 
-  if (isPaymentConfigured()) {
-    try {
-      ({ redirectUrl } = await createPayment(order));
-    } catch (error) {
-      paymentError =
-        error instanceof PaymentNotConfiguredError
-          ? "NOT_CONFIGURED"
-          : "FAILED";
-    }
-  } else {
-    paymentError = "NOT_CONFIGURED";
+  await orderStore.create(order);
+
+  // A notification failure must not lose a confirmed order: it is already
+  // persisted, so this is logged rather than surfaced to the customer.
+  try {
+    await notifier.send(order, order.notificationMessage);
+  } catch (error) {
+    console.error("[orders] notification failed", order.id, error);
   }
 
   return NextResponse.json(
@@ -103,8 +104,6 @@ export async function POST(request: Request) {
       totalHalalas: order.totalHalalas,
       totalSar: order.totalHalalas / 100,
       lines: order.lines,
-      redirectUrl,
-      paymentError,
     },
     { status: 201 },
   );

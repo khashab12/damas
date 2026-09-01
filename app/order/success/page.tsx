@@ -17,13 +17,14 @@ export default async function OrderSuccessPage({
 
   return (
     <main className="order-result" dir="rtl">
-      {/* Confirmed payment is the ONLY thing that empties the cart. */}
-      <ClearCartOnSuccess paid={order?.status === "paid"} />
+      {/* A confirmed order is the only thing that empties the cart. */}
+      <ClearCartOnSuccess paid={order?.status === "confirmed"} />
       <div className="order-result-card">
         <div className="order-result-badge order-result-badge--ok">✓</div>
-        <h1 className="order-result-title">تم استلام طلبك</h1>
+        <h1 className="order-result-title">تم تأكيد طلبك</h1>
         <p className="order-result-text">
-          شكرًا لك. سيتم تجهيز طلبك في أقرب وقت.
+          شكرًا لك. تم إرسال طلبك إلى المطعم وسيتم تجهيزه في أقرب وقت. الدفع عند
+          الاستلام.
         </p>
 
         {order ? (
@@ -37,10 +38,8 @@ export default async function OrderSuccessPage({
               <strong>{riyals(order.totalHalalas)} ريال</strong>
             </div>
             <div className="order-result-row">
-              <span>الحالة</span>
-              <strong>
-                {order.status === "paid" ? "مدفوع" : "قيد الانتظار"}
-              </strong>
+              <span>الدفع</span>
+              <strong>عند الاستلام</strong>
             </div>
           </div>
         ) : (

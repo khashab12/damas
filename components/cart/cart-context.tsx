@@ -48,16 +48,16 @@ function readStoredCart(): CartLine[] {
 }
 
 /**
- * Cart persisted in sessionStorage, so it survives the redirect out to the
- * payment provider and back — a failed payment returns to a full cart.
+ * Cart persisted in sessionStorage, so it survives a reload or an accidental
+ * navigation away and back.
  *
  * sessionStorage, not localStorage: it is scoped to the tab and clears when
  * the tab closes, so a stale cart never greets a different customer on a
  * shared device.
  *
- * It is cleared ONLY on a confirmed successful payment (see
- * components/cart/clear-cart-on-success.tsx). Submitting an order does not
- * clear it, because the payment has not succeeded yet at that point.
+ * It is cleared ONLY once the server confirms the order (see
+ * components/cart/clear-cart-on-success.tsx), so a failed submission leaves
+ * the customer with a full cart to retry from.
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = React.useState<CartLine[]>([]);
