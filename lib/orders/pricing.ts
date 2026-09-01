@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { menuCatalogue } from "@/data/menu";
+import { normalizeSaudiPhone } from "./phone";
 import type { OrderLine } from "./types";
 
 /* ---------------------------------------------------------------------------
@@ -21,9 +22,6 @@ export const orderLineInputSchema = z
   })
   .strict();
 
-/** Saudi mobile: 05 followed by 8 digits. */
-export const SAUDI_PHONE_RE = /^05\d{8}$/;
-
 export const createOrderSchema = z
   .object({
     items: z
@@ -31,10 +29,15 @@ export const createOrderSchema = z
       .min(1, "an order needs at least one item")
       .max(50, "too many distinct items"),
     customerName: z.string().trim().min(2, "name is required").max(80),
+    // Normalised BEFORE validation, so +966 / 00966 / 966 / spaces / dashes all
+    // pass, and the canonical 05XXXXXXXX form is what gets stored.
     customerPhone: z
       .string()
-      .trim()
-      .regex(SAUDI_PHONE_RE, "phone must match 05XXXXXXXX"),
+      .transform((value) => normalizeSaudiPhone(value))
+      .refine(
+        (value): value is string => value !== null,
+        "phone must be a valid Saudi mobile (05XXXXXXXX)",
+      ),
     fulfilment: z.enum(["delivery", "pickup"]),
     address: z.string().trim().max(300).optional(),
     note: z.string().trim().max(500).optional(),

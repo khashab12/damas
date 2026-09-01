@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { sar, useCart } from "./cart-context";
-import { SAUDI_PHONE_RE } from "@/lib/orders/pricing";
+import { isValidSaudiPhone } from "@/lib/orders/phone";
 
 /**
  * Floating cart button + bottom sheet.
@@ -31,7 +31,8 @@ export function CartBar() {
   // Mirrors the server schema in lib/orders/pricing.ts. The server re-validates
   // regardless; this only gates the button.
   const nameOk = name.trim().length >= 2;
-  const phoneOk = SAUDI_PHONE_RE.test(phone.trim());
+  // Same normalisation as the server, so the gate accepts what the API accepts.
+  const phoneOk = isValidSaudiPhone(phone);
   const addressOk = fulfilment === "pickup" || address.trim().length > 0;
   const detailsValid = nameOk && phoneOk && addressOk;
 
@@ -245,7 +246,7 @@ export function CartBar() {
                 onPointerDownCapture={stop}
                 inputMode="numeric"
                 autoComplete="tel"
-                placeholder="05XXXXXXXX"
+                placeholder="05XXXXXXXX أو ‎+966"
                 aria-invalid={phone.length > 0 && !phoneOk}
               />
               {phone.length > 0 && !phoneOk ? (

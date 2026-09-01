@@ -436,4 +436,3 @@ export function LocationMap({
     </motion.div>
   );
 }
-
