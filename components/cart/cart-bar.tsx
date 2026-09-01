@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { sar, useCart } from "./cart-context";
+import { SAUDI_PHONE_RE } from "@/lib/orders/pricing";
 
 /**
  * Floating cart button + bottom sheet.
@@ -15,9 +16,24 @@ import { sar, useCart } from "./cart-context";
 export function CartBar() {
   const { lines, totalCount, totalPrice, add, remove } = useCart();
   const [open, setOpen] = React.useState(false);
+  const [step, setStep] = React.useState<"cart" | "details">("cart");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [name, setName] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [fulfilment, setFulfilment] = React.useState<"delivery" | "pickup">(
+    "delivery",
+  );
+  const [address, setAddress] = React.useState("");
+  const [note, setNote] = React.useState("");
   const router = useRouter();
+
+  // Mirrors the server schema in lib/orders/pricing.ts. The server re-validates
+  // regardless; this only gates the button.
+  const nameOk = name.trim().length >= 2;
+  const phoneOk = SAUDI_PHONE_RE.test(phone.trim());
+  const addressOk = fulfilment === "pickup" || address.trim().length > 0;
+  const detailsValid = nameOk && phoneOk && addressOk;
 
   const stop = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -32,7 +48,7 @@ export function CartBar() {
 
   async function submit(e: React.PointerEvent) {
     stop(e);
-    if (submitting || lines.length === 0) return;
+    if (submitting || lines.length === 0 || !detailsValid) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -41,7 +57,13 @@ export function CartBar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          // Still ids + quantities ONLY. No prices leave the client.
           items: lines.map((l) => ({ itemId: l.id, quantity: l.qty })),
+          customerName: name.trim(),
+          customerPhone: phone.trim(),
+          fulfilment,
+          ...(fulfilment === "delivery" ? { address: address.trim() } : {}),
+          ...(note.trim() ? { note: note.trim() } : {}),
         }),
       });
       const data = await res.json();
@@ -88,7 +110,21 @@ export function CartBar() {
         {...guard}
       >
         <div className="cart-sheet-head">
-          <span>طلبك</span>
+          <span>
+            {step === "cart" ? "طلبك" : "تأكيد الطلب"}
+            {step === "details" ? (
+              <button
+                type="button"
+                className="cart-back"
+                onPointerDownCapture={(e) => {
+                  stop(e);
+                  setStep("cart");
+                }}
+              >
+                رجوع
+              </button>
+            ) : null}
+          </span>
           <button
             type="button"
             className="cart-sheet-close"
@@ -103,40 +139,147 @@ export function CartBar() {
         </div>
 
         <div className="cart-sheet-lines">
-          {lines.map((line) => (
-            <div className="cart-line" key={line.id}>
-              <span className="cart-line-name">{line.name}</span>
-              <span className="cart-line-price">
-                {sar(line.price * line.qty)} ريال
-              </span>
-              <span className="qty-stepper">
-                <button
-                  type="button"
-                  className="qty-btn qty-btn--minus"
-                  aria-label={`إنقاص ${line.name}`}
-                  onPointerDownCapture={(e) => {
-                    stop(e);
-                    remove(line.id);
-                  }}
-                >
-                  −
-                </button>
-                <span className="qty-value">{line.qty}</span>
-                <button
-                  type="button"
-                  className="qty-btn qty-btn--plus"
-                  aria-label={`إضافة ${line.name}`}
-                  onPointerDownCapture={(e) => {
-                    stop(e);
-                    add({ id: line.id, name: line.name, price: line.price });
-                  }}
-                >
-                  +
-                </button>
-              </span>
-            </div>
-          ))}
+          {step === "details"
+            ? lines.map((line) => (
+                <div className="cart-line cart-line--compact" key={line.id}>
+                  <span className="cart-line-name">{line.name}</span>
+                  <span className="cart-line-qty">× {line.qty}</span>
+                  <span className="cart-line-price">
+                    {sar(line.price * line.qty)} ريال
+                  </span>
+                </div>
+              ))
+            : lines.map((line) => (
+                <div className="cart-line" key={line.id}>
+                  <span className="cart-line-name">{line.name}</span>
+                  <span className="cart-line-price">
+                    {sar(line.price * line.qty)} ريال
+                  </span>
+                  <span className="qty-stepper">
+                    <button
+                      type="button"
+                      className="qty-btn qty-btn--minus"
+                      aria-label={`إنقاص ${line.name}`}
+                      onPointerDownCapture={(e) => {
+                        stop(e);
+                        remove(line.id);
+                      }}
+                    >
+                      −
+                    </button>
+                    <span className="qty-value">{line.qty}</span>
+                    <button
+                      type="button"
+                      className="qty-btn qty-btn--plus"
+                      aria-label={`إضافة ${line.name}`}
+                      onPointerDownCapture={(e) => {
+                        stop(e);
+                        add({
+                          id: line.id,
+                          name: line.name,
+                          price: line.price,
+                        });
+                      }}
+                    >
+                      +
+                    </button>
+                  </span>
+                </div>
+              ))}
         </div>
+
+        {step === "details" ? (
+          <div className="cart-form">
+            <div className="cart-sheet-total cart-subtotal">
+              <span>المجموع الفرعي</span>
+              <span>{sar(totalPrice)} ريال</span>
+            </div>
+
+            <div
+              className="cart-toggle"
+              role="group"
+              aria-label="طريقة الاستلام"
+            >
+              <button
+                type="button"
+                className={`cart-toggle-btn${fulfilment === "delivery" ? " is-active" : ""}`}
+                aria-pressed={fulfilment === "delivery"}
+                onPointerDownCapture={(e) => {
+                  stop(e);
+                  setFulfilment("delivery");
+                }}
+              >
+                توصيل
+              </button>
+              <button
+                type="button"
+                className={`cart-toggle-btn${fulfilment === "pickup" ? " is-active" : ""}`}
+                aria-pressed={fulfilment === "pickup"}
+                onPointerDownCapture={(e) => {
+                  stop(e);
+                  setFulfilment("pickup");
+                }}
+              >
+                استلام من الفرع
+              </button>
+            </div>
+
+            <label className="cart-field">
+              <span>الاسم</span>
+              <input
+                className="cart-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onPointerDownCapture={stop}
+                autoComplete="name"
+                placeholder="الاسم الكامل"
+              />
+            </label>
+
+            <label className="cart-field">
+              <span>رقم الجوال</span>
+              <input
+                className="cart-input"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onPointerDownCapture={stop}
+                inputMode="numeric"
+                autoComplete="tel"
+                placeholder="05XXXXXXXX"
+                aria-invalid={phone.length > 0 && !phoneOk}
+              />
+              {phone.length > 0 && !phoneOk ? (
+                <em className="cart-hint">صيغة الرقم غير صحيحة (05XXXXXXXX)</em>
+              ) : null}
+            </label>
+
+            {fulfilment === "delivery" ? (
+              <label className="cart-field">
+                <span>العنوان</span>
+                <textarea
+                  className="cart-input cart-textarea"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  onPointerDownCapture={stop}
+                  rows={2}
+                  placeholder="الحي، الشارع، رقم المبنى"
+                />
+              </label>
+            ) : null}
+
+            <label className="cart-field">
+              <span>ملاحظات</span>
+              <textarea
+                className="cart-input cart-textarea"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                onPointerDownCapture={stop}
+                rows={2}
+                placeholder="اختياري"
+              />
+            </label>
+          </div>
+        ) : null}
 
         <div className="cart-sheet-total">
           <span>الإجمالي</span>
@@ -145,14 +288,27 @@ export function CartBar() {
 
         {error ? <p className="cart-sheet-error">{error}</p> : null}
 
-        <button
-          type="button"
-          className="cart-cta"
-          disabled={submitting}
-          onPointerDownCapture={submit}
-        >
-          {submitting ? "جارٍ الإرسال…" : "متابعة الطلب"}
-        </button>
+        {step === "cart" ? (
+          <button
+            type="button"
+            className="cart-cta"
+            onPointerDownCapture={(e) => {
+              stop(e);
+              setStep("details");
+            }}
+          >
+            متابعة الطلب
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="cart-cta"
+            disabled={submitting || !detailsValid}
+            onPointerDownCapture={submit}
+          >
+            {submitting ? "جارٍ الإرسال…" : "تأكيد الطلب"}
+          </button>
+        )}
       </div>
 
       <button

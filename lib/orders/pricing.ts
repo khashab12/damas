@@ -21,21 +21,35 @@ export const orderLineInputSchema = z
   })
   .strict();
 
+/** Saudi mobile: 05 followed by 8 digits. */
+export const SAUDI_PHONE_RE = /^05\d{8}$/;
+
 export const createOrderSchema = z
   .object({
     items: z
       .array(orderLineInputSchema)
       .min(1, "an order needs at least one item")
       .max(50, "too many distinct items"),
-    customerName: z.string().trim().min(1).max(80).optional(),
+    customerName: z.string().trim().min(2, "name is required").max(80),
     customerPhone: z
       .string()
       .trim()
-      .regex(/^[0-9+\s-]{7,20}$/, "invalid phone number")
-      .optional(),
+      .regex(SAUDI_PHONE_RE, "phone must match 05XXXXXXXX"),
+    fulfilment: z.enum(["delivery", "pickup"]),
+    address: z.string().trim().max(300).optional(),
     note: z.string().trim().max(500).optional(),
   })
-  .strict();
+  .strict()
+  // Address is only meaningful for delivery, and mandatory there.
+  .superRefine((value, ctx) => {
+    if (value.fulfilment === "delivery" && !value.address) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["address"],
+        message: "address is required for delivery",
+      });
+    }
+  });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 

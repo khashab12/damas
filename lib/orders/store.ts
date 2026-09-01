@@ -41,8 +41,10 @@ function getDb(): DatabaseSync {
       status               TEXT NOT NULL,
       lines_json           TEXT NOT NULL,
       total_halalas        INTEGER NOT NULL,
-      customer_name        TEXT,
-      customer_phone       TEXT,
+      customer_name        TEXT NOT NULL DEFAULT '',
+      customer_phone       TEXT NOT NULL DEFAULT '',
+      fulfilment           TEXT NOT NULL DEFAULT 'pickup',
+      address              TEXT,
       note                 TEXT,
       notification_message TEXT,
       payment_reference    TEXT,
@@ -50,6 +52,22 @@ function getDb(): DatabaseSync {
       updated_at           TEXT NOT NULL
     );
   `);
+  // Additive migration: databases created before customer details existed are
+  // upgraded in place rather than dropped, so previous orders survive.
+  const existing = new Set(
+    (
+      handle.prepare(`PRAGMA table_info(orders)`).all() as { name: string }[]
+    ).map((c) => c.name),
+  );
+  if (!existing.has("fulfilment")) {
+    handle.exec(
+      `ALTER TABLE orders ADD COLUMN fulfilment TEXT NOT NULL DEFAULT 'pickup'`,
+    );
+  }
+  if (!existing.has("address")) {
+    handle.exec(`ALTER TABLE orders ADD COLUMN address TEXT`);
+  }
+
   db = handle;
   return handle;
 }
@@ -59,8 +77,10 @@ type Row = {
   status: string;
   lines_json: string;
   total_halalas: number;
-  customer_name: string | null;
-  customer_phone: string | null;
+  customer_name: string;
+  customer_phone: string;
+  fulfilment: string;
+  address: string | null;
   note: string | null;
   notification_message: string | null;
   payment_reference: string | null;
@@ -75,6 +95,8 @@ const toOrder = (row: Row): Order => ({
   totalHalalas: row.total_halalas,
   customerName: row.customer_name,
   customerPhone: row.customer_phone,
+  fulfilment: row.fulfilment as Order["fulfilment"],
+  address: row.address,
   note: row.note,
   notificationMessage: row.notification_message,
   paymentReference: row.payment_reference,
@@ -94,8 +116,9 @@ export const sqliteOrderStore: OrderStore = {
     getDb()
       .prepare(
         `INSERT INTO orders (id, status, lines_json, total_halalas, customer_name,
-           customer_phone, note, notification_message, payment_reference, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           customer_phone, fulfilment, address, note, notification_message,
+           payment_reference, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         order.id,
@@ -104,6 +127,8 @@ export const sqliteOrderStore: OrderStore = {
         order.totalHalalas,
         order.customerName,
         order.customerPhone,
+        order.fulfilment,
+        order.address,
         order.note,
         order.notificationMessage,
         order.paymentReference,

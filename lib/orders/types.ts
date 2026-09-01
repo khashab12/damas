@@ -2,6 +2,9 @@
 
 export type OrderStatus = "pending" | "paid" | "failed";
 
+/** How the customer receives the order. */
+export type Fulfilment = "delivery" | "pickup";
+
 export type OrderLine = {
   itemId: string;
   /** Snapshot of the name at order time, so later menu edits don't rewrite history. */
@@ -17,8 +20,11 @@ export type Order = {
   status: OrderStatus;
   lines: OrderLine[];
   totalHalalas: number;
-  customerName: string | null;
-  customerPhone: string | null;
+  customerName: string;
+  customerPhone: string;
+  fulfilment: Fulfilment;
+  /** Required for delivery, null for pickup. */
+  address: string | null;
   note: string | null;
   /** Rendered Arabic message sent to the restaurant. Null until paid. */
   notificationMessage: string | null;

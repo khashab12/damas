@@ -700,7 +700,7 @@
   margin: 0 auto;
   width: 100%;
   max-width: 430px;
-  max-height: 70dvh;
+  max-height: 88dvh;
   overflow-y: auto;
   background: #faf6f0;
   border: 1px solid rgba(210, 156, 66, 0.35);
@@ -833,4 +833,115 @@
   font-size: clamp(0.68rem, 3vw, 0.82rem);
   color: var(--brand-muted);
   text-decoration: underline;
+}
+
+/* ---- Cart details step (components/cart/cart-bar.tsx) ---- */
+
+.cart-back {
+  margin-inline-start: clamp(0.4rem, 2vw, 0.7rem);
+  border: none;
+  background: transparent;
+  color: var(--brand-muted);
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.62rem, 2.8vw, 0.75rem);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cart-form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 1.5vw, 0.55rem);
+  margin-top: clamp(0.3rem, 1.6vw, 0.6rem);
+}
+
+.cart-subtotal {
+  padding-top: 0;
+  color: var(--brand-muted);
+  font-size: clamp(0.68rem, 3vw, 0.82rem);
+  border-bottom: 1px solid #ece2d0;
+}
+
+.cart-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.25rem, 1.4vw, 0.45rem);
+}
+
+.cart-toggle-btn {
+  padding: clamp(0.32rem, 1.8vw, 0.5rem);
+  border: 1px solid rgba(210, 156, 66, 0.5);
+  border-radius: 9999px;
+  background: #fffdf9;
+  color: var(--brand-muted);
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.66rem, 3vw, 0.8rem);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.cart-toggle-btn.is-active {
+  background: var(--brand-red);
+  border-color: var(--brand-red);
+  color: #ffffff;
+}
+
+.cart-field {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.1rem, 0.6vw, 0.22rem);
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.62rem, 2.8vw, 0.76rem);
+  color: var(--brand-muted);
+}
+
+.cart-input {
+  width: 100%;
+  padding: clamp(0.3rem, 1.7vw, 0.5rem) clamp(0.4rem, 2vw, 0.6rem);
+  border: 1px solid #e0d5c2;
+  border-radius: 0.5rem;
+  background: #fffdf9;
+  color: var(--brand-ink);
+  font-family: var(--font-cairo), "Cairo", sans-serif;
+  font-size: clamp(0.68rem, 3vw, 0.85rem);
+  direction: rtl;
+}
+
+.cart-input:focus {
+  outline: 2px solid rgba(210, 156, 66, 0.6);
+  outline-offset: 1px;
+}
+
+.cart-input[aria-invalid="true"] {
+  border-color: var(--brand-red);
+}
+
+.cart-textarea {
+  resize: none;
+  line-height: 1.4;
+}
+
+.cart-hint {
+  color: var(--brand-red);
+  font-size: clamp(0.55rem, 2.5vw, 0.68rem);
+  font-style: normal;
+}
+
+.cart-cta:disabled {
+  background: #c9a6a9;
+}
+
+/* Read-only summary rows on the details step: no steppers, tighter. */
+.cart-line--compact {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: clamp(0.16rem, 0.9vw, 0.3rem) 0;
+  font-size: clamp(0.62rem, 2.8vw, 0.76rem);
+}
+
+.cart-line-qty {
+  color: var(--brand-muted);
+  font-size: clamp(0.6rem, 2.7vw, 0.74rem);
+  white-space: nowrap;
 }
