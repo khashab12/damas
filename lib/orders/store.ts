@@ -38,6 +38,20 @@ function getPool(): Pool {
     }
     // Managed Postgres (Neon/Supabase) requires TLS; a local instance has none,
     // so TLS is enabled for everything except localhost.
+    //
+    // INTENT: sslmode=verify-full. `rejectUnauthorized: false` encrypts the
+    // connection but does not verify the server certificate; it is a stopgap,
+    // not the target state. The target is full verification - put
+    // `?sslmode=verify-full` in DATABASE_URL and drop this ssl override.
+    //
+    // Why this is written down: pg v9 / pg-connection-string v3 change
+    // `sslmode=require` (and `prefer`/`verify-ca`) from their current alias for
+    // verify-full to libpq semantics - encrypt, do not verify. .env.example
+    // still suggests `sslmode=require`, so on that upgrade the URL silently
+    // stops meaning verify-full. Behaviour here does not change on the upgrade,
+    // because this explicit ssl object takes precedence over the URL - which is
+    // exactly why the intent has to live in the code and not only in the
+    // connection string.
     const isLocal = /@(localhost|127\.0\.0\.1|\[::1\])[:/]/.test(connectionString);
     pool = new Pool({
       connectionString,
