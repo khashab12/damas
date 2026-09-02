@@ -17,8 +17,12 @@ export default async function OrderSuccessPage({
 
   return (
     <main className="order-result" dir="rtl">
-      {/* A confirmed order is the only thing that empties the cart. */}
-      <ClearCartOnSuccess paid={order?.status === "confirmed"} />
+      {/* An order the server can actually find is the only thing that empties
+          the cart. Deliberately not a check for status === "confirmed": the
+          restaurant moves orders on to "prepared"/"delivered" from the
+          dashboard, and a customer reopening this link later must not find a
+          resurrected cart because the status moved on. */}
+      <ClearCartOnSuccess paid={order !== null} />
       <div className="order-result-card">
         <div className="order-result-badge order-result-badge--ok">✓</div>
         <h1 className="order-result-title">تم تأكيد طلبك</h1>

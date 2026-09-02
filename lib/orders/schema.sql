@@ -26,3 +26,22 @@ CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders (created_at DESC);
 
 -- Lookup by customer phone for "where is my order".
 CREATE INDEX IF NOT EXISTS orders_customer_phone_idx ON orders (customer_phone);
+
+-- Order lifecycle status for the /admin/orders dashboard.
+--
+-- Additive migration: a table created by the block above already has the
+-- column, so this is a no-op there. It exists for databases created before the
+-- dashboard shipped. Existing rows keep their data and default to 'confirmed';
+-- nothing is dropped.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'confirmed';
+
+-- Postgres has no ADD CONSTRAINT IF NOT EXISTS, and this file re-runs.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'orders_status_check'
+  ) THEN
+    ALTER TABLE orders ADD CONSTRAINT orders_status_check
+      CHECK (status IN ('confirmed', 'prepared', 'delivered'));
+  END IF;
+END $$;

@@ -69,11 +69,12 @@ export const isValidSaudiPhone = (raw: string): boolean =>
   normalizeSaudiPhone(raw) !== null;
 
 /**
- * E.164 digits with no leading `+`, which is the `to` format the WhatsApp
- * Cloud API expects: 05XXXXXXXX -> 9665XXXXXXXX.
+ * E.164 digits with no leading `+`: 05XXXXXXXX -> 9665XXXXXXXX.
  *
- * Built on normalizeSaudiPhone so the restaurant number in the env and the
- * customer numbers in orders go through exactly one set of rules.
+ * Used for the dashboard's tap-to-call links, which are built as `tel:+966…`
+ * so they dial correctly from a device that is roaming or has a non-Saudi SIM.
+ * Built on normalizeSaudiPhone so stored numbers and dialled numbers go
+ * through exactly one set of rules.
  */
 export function toSaudiE164(raw: string): string | null {
   const local = normalizeSaudiPhone(raw);

@@ -12,10 +12,10 @@ import type { Order } from "@/lib/orders/types";
 export const runtime = "nodejs";
 
 /**
- * The WhatsApp send runs in `after()`, i.e. after this response is flushed but
+ * The notification runs in `after()`, i.e. after this response is flushed but
  * still inside the same invocation, so the platform must keep the function
- * alive long enough for it: two attempts at up to 8s plus a 1s backoff, on top
- * of the insert. 30s leaves room and is well under the platform ceiling.
+ * alive long enough for it: two attempts at up to 8s plus a backoff, on top of
+ * the insert. 30s leaves room and is well under the platform ceiling.
  */
 export const maxDuration = 30;
 
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
   // Notify AFTER the response is flushed. Two reasons, both deliberate:
   //
   //  1. It cannot block the customer. The order is already persisted and the
-  //     201 goes out immediately; a slow or dead WhatsApp adds zero latency to
+  //     201 goes out immediately; a slow or dead Telegram adds zero latency to
   //     the checkout and cannot turn a saved order into a visible failure.
   //  2. It still runs to completion. `after` keeps the serverless invocation
   //     alive (via waitUntil) rather than being cut off mid-flight, which is

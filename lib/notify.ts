@@ -1,16 +1,18 @@
 import type { Order } from "@/lib/orders/types";
-import { createWhatsAppNotifier, readWhatsAppConfig } from "@/lib/whatsapp";
+import { createTelegramNotifier, readTelegramConfig } from "@/lib/telegram";
 
 /* ---------------------------------------------------------------------------
  * Restaurant notification.
  *
- * The channel sits behind `OrderNotifier` so WhatsApp / email / SMS can be
+ * The channel sits behind `OrderNotifier` so Telegram / email / SMS can be
  * swapped without touching the route. The rendered message is also stored on
  * the order and returned by GET /api/orders/:id, so what was sent stays
  * inspectable even when the provider is down.
  *
- * The default channel is WhatsApp when it is configured (lib/whatsapp.ts), and
- * the server log when it is not.
+ * The default channel is Telegram when it is configured (lib/telegram.ts), and
+ * the server log when it is not. Either way the order also lands on the
+ * dashboard at /admin/orders, which is the durable record — the notification
+ * is the alert, not the system of record.
  * ------------------------------------------------------------------------- */
 
 export interface OrderNotifier {
@@ -71,24 +73,24 @@ export const consoleNotifier: OrderNotifier = {
 /**
  * Active channel, chosen once per process from the environment.
  *
- * WhatsApp when WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN are both
- * set, the console otherwise. The fallback is deliberate: a missing credential
- * degrades to "the order is logged and still readable via GET /api/orders/:id",
- * never to a failed order.
+ * Telegram when TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are both set, the
+ * console otherwise. The fallback is deliberate: a missing credential degrades
+ * to "the order is logged and still visible on /admin/orders", never to a
+ * failed order.
  *
  * To add another channel (email, SMS), implement OrderNotifier and return it
  * from here. Nothing else in the pipeline changes.
  */
 function selectNotifier(): OrderNotifier {
-  const config = readWhatsAppConfig();
+  const config = readTelegramConfig();
   if (!config) {
     console.warn(
-      "[notify] WhatsApp is not configured (WHATSAPP_PHONE_NUMBER_ID / " +
-        "WHATSAPP_ACCESS_TOKEN); order notifications go to the server log only.",
+      "[notify] Telegram is not configured (TELEGRAM_BOT_TOKEN / " +
+        "TELEGRAM_CHAT_ID); order notifications go to the server log only.",
     );
     return consoleNotifier;
   }
-  return createWhatsAppNotifier(config);
+  return createTelegramNotifier(config);
 }
 
 export const notifier: OrderNotifier = selectNotifier();

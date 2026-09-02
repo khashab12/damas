@@ -1,7 +1,30 @@
 /** Order domain types. Money is always integer halalas (1 SAR = 100 halalas). */
 
-/** Cash on delivery/pickup: an order is confirmed the moment it is placed. */
-export type OrderStatus = "confirmed";
+/**
+ * Order lifecycle, driven from the /admin/orders dashboard.
+ *
+ * Cash on delivery/pickup, so there is no payment state: an order is
+ * `confirmed` the moment it is placed, and the restaurant moves it forward
+ * from there. Forward-only in practice, but not enforced — staff mis-tap, and
+ * being unable to undo is worse than an out-of-order transition.
+ */
+export const ORDER_STATUSES = ["confirmed", "prepared", "delivered"] as const;
+
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+/** Arabic labels for the dashboard. */
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  confirmed: "جديد",
+  prepared: "متحضر",
+  delivered: "تم التسليم",
+};
+
+export function isOrderStatus(value: unknown): value is OrderStatus {
+  return (
+    typeof value === "string" &&
+    (ORDER_STATUSES as readonly string[]).includes(value)
+  );
+}
 
 /** How the customer receives the order. */
 export type Fulfilment = "delivery" | "pickup";
@@ -33,9 +56,20 @@ export type Order = {
   updatedAt: string;
 };
 
+/** Options for the dashboard feed. */
+export type OrderListOptions = {
+  /** ISO lower bound on createdAt. null = no bound ("all"). */
+  since?: string | null;
+  limit?: number;
+};
+
 export interface OrderStore {
   /** Persists a fully-formed order. The caller owns id and timestamps so the
    *  notification can be rendered before the single write. */
   create(order: Order): Promise<Order>;
   get(id: string): Promise<Order | null>;
+  /** Newest first. Backs /admin/orders. */
+  list(options?: OrderListOptions): Promise<Order[]>;
+  /** Returns the updated order, or null when the id does not exist. */
+  setStatus(id: string, status: OrderStatus): Promise<Order | null>;
 }

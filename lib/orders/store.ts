@@ -97,6 +97,26 @@ export const SCHEMA_SQL = `
   );
   CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders (created_at DESC);
   CREATE INDEX IF NOT EXISTS orders_customer_phone_idx ON orders (customer_phone);
+
+  -- MIGRATION: order lifecycle status, added for the /admin/orders dashboard.
+  --
+  -- Additive only. A table created by an older deploy already has this column
+  -- (it was in the original CREATE TABLE), so ADD COLUMN IF NOT EXISTS is a
+  -- no-op there; it exists for any database that predates it. Existing rows
+  -- keep their data and default to 'confirmed'. Nothing is ever dropped.
+  ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'confirmed';
+
+  -- The CHECK is added separately: Postgres has no ADD CONSTRAINT IF NOT
+  -- EXISTS, and this whole block re-runs on every cold start.
+  DO $$
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'orders_status_check'
+    ) THEN
+      ALTER TABLE orders ADD CONSTRAINT orders_status_check
+        CHECK (status IN ('confirmed', 'prepared', 'delivered'));
+    END IF;
+  END $$;
 `;
 
 export const INSERT_SQL = `
@@ -107,6 +127,21 @@ export const INSERT_SQL = `
 `;
 
 export const SELECT_SQL = `SELECT * FROM orders WHERE id = $1`;
+
+/** Dashboard feed. Newest first; `$1` is an optional lower bound on created_at
+ *  (the "today" filter), passed as null for "all". */
+export const LIST_SQL = `
+  SELECT * FROM orders
+  WHERE ($1::timestamptz IS NULL OR created_at >= $1)
+  ORDER BY created_at DESC
+  LIMIT $2
+`;
+
+/** Status change from the dashboard. Returns the row so the caller never has
+ *  to re-read to find out whether the id existed. */
+export const UPDATE_STATUS_SQL = `
+  UPDATE orders SET status = $2, updated_at = $3 WHERE id = $1 RETURNING *
+`;
 
 export type OrderRow = {
   id: string;
@@ -170,6 +205,23 @@ export const postgresOrderStore: OrderStore = {
   async get(id) {
     await ensureSchema();
     const result = await getPool().query<OrderRow>(SELECT_SQL, [id]);
+    return result.rows[0] ? rowToOrder(result.rows[0]) : null;
+  },
+
+  async list({ since = null, limit = 200 } = {}) {
+    await ensureSchema();
+    const result = await getPool().query<OrderRow>(LIST_SQL, [since, limit]);
+    return result.rows.map(rowToOrder);
+  },
+
+  async setStatus(id, status) {
+    await ensureSchema();
+    const now = new Date().toISOString();
+    const result = await getPool().query<OrderRow>(UPDATE_STATUS_SQL, [
+      id,
+      status,
+      now,
+    ]);
     return result.rows[0] ? rowToOrder(result.rows[0]) : null;
   },
 };
