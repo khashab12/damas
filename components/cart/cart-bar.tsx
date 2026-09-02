@@ -67,8 +67,20 @@ export function CartBar() {
           ...(note.trim() ? { note: note.trim() } : {}),
         }),
       });
-      const data = await res.json();
+      // A 5xx can be an HTML error page rather than our JSON envelope, so the
+      // parse must not be what decides the outcome.
+      const data = await res.json().catch(() => null);
+
+      if (res.status >= 500) {
+        // Nothing the customer can fix in the sheet, and we cannot say whether
+        // the order was saved -- send them to the full-page failure instead of
+        // a one-line note under the button.
+        router.push("/order/failed?reason=server");
+        return;
+      }
       if (!res.ok) {
+        // 4xx is a problem with what they typed (validation, an item that left
+        // the menu). Keep it inline, next to the fields they need to change.
         setError(data?.message ?? "تعذّر إنشاء الطلب.");
         return;
       }
@@ -76,7 +88,9 @@ export function CartBar() {
       // network failure here leaves the cart intact for a retry.
       router.push(`/order/success?id=${encodeURIComponent(data.orderId)}`);
     } catch {
-      setError("تعذّر الاتصال بالخادم.");
+      // fetch itself rejected: offline, DNS, TLS, aborted. The request may
+      // never have reached the server at all.
+      router.push("/order/failed?reason=network");
     } finally {
       setSubmitting(false);
     }

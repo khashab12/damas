@@ -1,12 +1,16 @@
 import type { Order } from "@/lib/orders/types";
+import { createWhatsAppNotifier, readWhatsAppConfig } from "@/lib/whatsapp";
 
 /* ---------------------------------------------------------------------------
  * Restaurant notification.
  *
  * The channel sits behind `OrderNotifier` so WhatsApp / email / SMS can be
- * swapped in without touching the webhook. Today it logs; the rendered message
- * is also stored on the order and returned by GET /api/orders/:id so the output
- * is inspectable without a provider.
+ * swapped without touching the route. The rendered message is also stored on
+ * the order and returned by GET /api/orders/:id, so what was sent stays
+ * inspectable even when the provider is down.
+ *
+ * The default channel is WhatsApp when it is configured (lib/whatsapp.ts), and
+ * the server log when it is not.
  * ------------------------------------------------------------------------- */
 
 export interface OrderNotifier {
@@ -64,10 +68,27 @@ export const consoleNotifier: OrderNotifier = {
   },
 };
 
-/*
- * To swap the channel later, implement OrderNotifier and export it as
- * `notifier`. A WhatsApp adapter would POST `message` to the Cloud API's
- * /{phone-number-id}/messages endpoint; an email adapter would hand it to
- * Resend/SES. Nothing else in the pipeline changes.
+/**
+ * Active channel, chosen once per process from the environment.
+ *
+ * WhatsApp when WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN are both
+ * set, the console otherwise. The fallback is deliberate: a missing credential
+ * degrades to "the order is logged and still readable via GET /api/orders/:id",
+ * never to a failed order.
+ *
+ * To add another channel (email, SMS), implement OrderNotifier and return it
+ * from here. Nothing else in the pipeline changes.
  */
-export const notifier: OrderNotifier = consoleNotifier;
+function selectNotifier(): OrderNotifier {
+  const config = readWhatsAppConfig();
+  if (!config) {
+    console.warn(
+      "[notify] WhatsApp is not configured (WHATSAPP_PHONE_NUMBER_ID / " +
+        "WHATSAPP_ACCESS_TOKEN); order notifications go to the server log only.",
+    );
+    return consoleNotifier;
+  }
+  return createWhatsAppNotifier(config);
+}
+
+export const notifier: OrderNotifier = selectNotifier();

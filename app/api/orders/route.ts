@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { orderStore } from "@/lib/orders/store";
 import {
   createOrderSchema,
@@ -10,6 +10,14 @@ import { formatOrderMessage, notifier } from "@/lib/notify";
 import type { Order } from "@/lib/orders/types";
 
 export const runtime = "nodejs";
+
+/**
+ * The WhatsApp send runs in `after()`, i.e. after this response is flushed but
+ * still inside the same invocation, so the platform must keep the function
+ * alive long enough for it: two attempts at up to 8s plus a 1s backoff, on top
+ * of the insert. 30s leaves room and is well under the platform ceiling.
+ */
+export const maxDuration = 30;
 
 /**
  * POST /api/orders
@@ -89,13 +97,31 @@ export async function POST(request: Request) {
 
   await orderStore.create(order);
 
-  // A notification failure must not lose a confirmed order: it is already
-  // persisted, so this is logged rather than surfaced to the customer.
-  try {
-    await notifier.send(order, order.notificationMessage);
-  } catch (error) {
-    console.error("[orders] notification failed", order.id, error);
-  }
+  // Notify AFTER the response is flushed. Two reasons, both deliberate:
+  //
+  //  1. It cannot block the customer. The order is already persisted and the
+  //     201 goes out immediately; a slow or dead WhatsApp adds zero latency to
+  //     the checkout and cannot turn a saved order into a visible failure.
+  //  2. It still runs to completion. `after` keeps the serverless invocation
+  //     alive (via waitUntil) rather than being cut off mid-flight, which is
+  //     what a bare floating promise would risk.
+  //
+  // The notifier already retries once internally; anything that escapes here
+  // is a real outage, so the full message is re-logged as the last-resort copy
+  // for whoever has to phone the order through by hand.
+  after(async () => {
+    try {
+      await notifier.send(order, order.notificationMessage);
+    } catch (error) {
+      console.error(
+        `[orders] notification FAILED via ${notifier.channel} for ${order.id}:`,
+        error instanceof Error ? error.message : error,
+      );
+      console.error(
+        `[orders] undelivered message for ${order.id}:\n${order.notificationMessage}`,
+      );
+    }
+  });
 
   return NextResponse.json(
     {

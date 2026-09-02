@@ -67,3 +67,15 @@ export function normalizeSaudiPhone(raw: string): string | null {
 /** Convenience predicate for UI gating. */
 export const isValidSaudiPhone = (raw: string): boolean =>
   normalizeSaudiPhone(raw) !== null;
+
+/**
+ * E.164 digits with no leading `+`, which is the `to` format the WhatsApp
+ * Cloud API expects: 05XXXXXXXX -> 9665XXXXXXXX.
+ *
+ * Built on normalizeSaudiPhone so the restaurant number in the env and the
+ * customer numbers in orders go through exactly one set of rules.
+ */
+export function toSaudiE164(raw: string): string | null {
+  const local = normalizeSaudiPhone(raw);
+  return local === null ? null : `966${local.slice(1)}`;
+}
