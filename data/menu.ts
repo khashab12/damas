@@ -27,17 +27,17 @@ export const dishItems: MenuItem[] = [
   { id: "dish-04", name: "طبق بيض اومليت كبير", price: "6", calories: "200" },
   {
     id: "dish-05",
-    name: "بطاطس شبتي / أو صوابع صغير",
+    name: "بطاطس شيبسي / أو صوابع صغير",
     price: "3",
     calories: "250",
   },
   {
     id: "dish-06",
-    name: "بطاطس شبتي / أو صوابع كبير",
+    name: "بطاطس شيبسي / أو صوابع كبير",
     price: "6",
     calories: "300",
   },
-  { id: "dish-07", name: "بطاطس شبتي بالجبن", price: "3", calories: "250" },
+  { id: "dish-07", name: "بطاطس شيبسي بالجبن", price: "3", calories: "250" },
 ];
 
 export const platterItems: MenuItem[] = [
@@ -69,31 +69,31 @@ export const mainItems: MenuItem[] = [
 export const mealItems: MenuItem[] = [
   {
     id: "meal-01",
-    name: "نص دجاج مقلي مع نفر رز وخضار وسلطة وشورية",
+    name: "نص دجاج مقلي مع نفر رز وخضار وسلطة وشوربة",
     price: "26",
     calories: "1060",
   },
   {
     id: "meal-02",
-    name: "ربع دجاج مقلي مع نفر رز وخضار وسلطة وشورية",
+    name: "ربع دجاج مقلي مع نفر رز وخضار وسلطة وشوربة",
     price: "15",
     calories: "710",
   },
   {
     id: "meal-03",
-    name: "ربع دجاج فرن مع بطاطس ونفر رز وسلطة وشورية",
+    name: "ربع دجاج فرن مع بطاطس ونفر رز وسلطة وشوربة",
     price: "26",
     calories: "1100",
   },
   {
     id: "meal-04",
-    name: "نص دجاج فرن مع بطاطس ونفر رز وسلطة وشورية",
+    name: "نص دجاج فرن مع بطاطس ونفر رز وسلطة وشوربة",
     price: "15",
     calories: "820",
   },
   {
     id: "meal-05",
-    name: "طاجن بطاطس باللحم مع نفر رز وسلطة وشورية",
+    name: "طاجن بطاطس باللحم مع نفر رز وسلطة وشوربة",
     price: "25",
     calories: "780",
   },

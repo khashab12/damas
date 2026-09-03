@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import HTMLFlipBook from "react-pageflip";
+import { FlipAffordance } from "@/components/ui/flip-affordance";
 import { LocationMap } from "@/components/ui/location-map";
 import { MenuCard } from "@/components/ui/menu-card";
 import { PageFooter } from "@/components/ui/page-footer";
@@ -90,6 +91,21 @@ function MenuBook() {
   const mounted = useHydrated();
   const bookRef = React.useRef<FlipBookApi | null>(null);
 
+  // Drives the chevrons and the page indicator. Updating this re-renders
+  // MenuBook, which is safe: `pages` below is memoised with an empty dep list,
+  // so React sees identical element references and skips reconciling the nodes
+  // react-pageflip has relocated. Only the overlay actually re-renders.
+  const [currentPage, setCurrentPage] = React.useState(0);
+
+  // Stable identity on purpose. An inline arrow would hand react-pageflip a
+  // brand-new prop on every indicator update, and this library re-runs setup
+  // work when its props change -- exactly the churn the frozen `pages` memo
+  // below exists to avoid.
+  const handleFlip = React.useCallback(
+    (e: { data: number }) => setCurrentPage(e.data),
+    [],
+  );
+
   // React's dev double-mount (StrictMode) mounts, unmounts, then remounts this
   // subtree. react-pageflip moves its pages into its own .stf__block on init but
   // does not tear that DOM down on unmount, so the second init leaves an orphan
@@ -124,18 +140,34 @@ function MenuBook() {
     // Each page image that finishes loading makes react-pageflip re-run its
     // layout, and the book drifts forward every time. Wait for the window load
     // event so every image is settled before snapping to the cover.
+    //
+    // `load` alone is not late enough. The Arabic webfonts resolve after it,
+    // and re-flowing the menu rows in the new fill-the-page layout is itself a
+    // relayout that drifts the book -- so the correction used to fire while a
+    // further drift was still queued behind it, leaving the customer on page 2
+    // with no input. Waiting for BOTH signals puts the correction after the
+    // last relayout rather than in the middle of them.
+    let cancelled = false;
     const schedule = () => {
+      if (cancelled) return;
       timer = setTimeout(correctOnce, 150);
     };
 
-    if (document.readyState === "complete") {
-      schedule();
-    } else {
-      window.addEventListener("load", schedule, { once: true });
-    }
+    const loaded =
+      document.readyState === "complete"
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            window.addEventListener("load", () => resolve(), { once: true });
+          });
+
+    // document.fonts is absent on nothing we support, but a rejected
+    // fonts.ready (a font that fails to load) must not strand the book.
+    const fonts = document.fonts?.ready ?? Promise.resolve();
+
+    void Promise.all([loaded, fonts.catch(() => undefined)]).then(schedule);
 
     return () => {
-      window.removeEventListener("load", schedule);
+      cancelled = true;
       if (timer) clearTimeout(timer);
     };
   }, [mounted]);
@@ -312,6 +344,56 @@ function MenuBook() {
     [],
   );
 
+  /**
+   * The book element itself is frozen, for the same reason `pages` is.
+   *
+   * Tracking the page for the indicator means MenuBook re-renders on every
+   * flip. Re-rendering <FlipBook> makes react-pageflip re-run its update pass,
+   * which can land on a different page, which fires onFlip, which sets state
+   * again -- a feedback loop that had the book oscillating between the cover
+   * and page 2 on its own, with nobody touching it.
+   *
+   * Memoising the element gives React the identical reference each time, so it
+   * skips this subtree entirely and only the overlay re-renders. `handleFlip`
+   * is a stable useCallback and `pages` an empty-dep memo, so this never
+   * actually recomputes -- the deps are listed for correctness, not churn.
+   */
+  const book = React.useMemo(
+    () => (
+      <FlipBook
+        width={PAGE_WIDTH}
+        height={PAGE_HEIGHT}
+        size="stretch"
+        minWidth={MIN_WIDTH}
+        maxWidth={MAX_WIDTH}
+        minHeight={MIN_HEIGHT}
+        maxHeight={MAX_HEIGHT}
+        // Curl/depth shading during the flip. This is the animation's own
+        // shading, not the static gutter -- the gutter is hidden in CSS.
+        drawShadow={true}
+        maxShadowOpacity={0.5}
+        flippingTime={900}
+        showCover={true}
+        usePortrait={true}
+        autoSize={true}
+        startPage={0}
+        // Touch/swipe support on mobile; let vertical scrolling through.
+        mobileScrollSupport={true}
+        useMouseEvents={true}
+        swipeDistance={30}
+        clickEventForward={true}
+        // Fires after each turn, including swipes and the library's own
+        // programmatic turns, so the indicator can never drift from the page
+        // actually on screen.
+        onFlip={handleFlip}
+        ref={bookRef}
+      >
+        {pages}
+      </FlipBook>
+    ),
+    [pages, handleFlip],
+  );
+
   // Until react-pageflip can initialise (it touches `document`, so not on the
   // server) render a static cover at the same size instead of nothing.
   // Returning null here meant the server sent NO markup for the book at all, so
@@ -346,32 +428,11 @@ function MenuBook() {
 
   return (
     <div className="book-shell mx-auto flex w-full items-center justify-center">
-      <FlipBook
-        width={PAGE_WIDTH}
-        height={PAGE_HEIGHT}
-        size="stretch"
-        minWidth={MIN_WIDTH}
-        maxWidth={MAX_WIDTH}
-        minHeight={MIN_HEIGHT}
-        maxHeight={MAX_HEIGHT}
-        // Curl/depth shading during the flip. This is the animation's own
-        // shading, not the static gutter -- the gutter is hidden in CSS.
-        drawShadow={true}
-        maxShadowOpacity={0.5}
-        flippingTime={900}
-        showCover={true}
-        usePortrait={true}
-        autoSize={true}
-        startPage={0}
-        // Touch/swipe support on mobile; let vertical scrolling through.
-        mobileScrollSupport={true}
-        useMouseEvents={true}
-        swipeDistance={30}
-        clickEventForward={true}
-        ref={bookRef}
-      >
-        {pages}
-      </FlipBook>
+      {book}
+
+      {/* Overlay, not a per-page child: see components/ui/flip-affordance.tsx
+          for why it cannot live inside the frozen page subtree. */}
+      <FlipAffordance current={currentPage} total={pages.length} />
     </div>
   );
 }
