@@ -88,7 +88,3 @@ export async function grantSession(): Promise<void> {
     maxAge: COOKIE_MAX_AGE_SECONDS,
   });
 }
-
-export async function clearSession(): Promise<void> {
-  (await cookies()).delete(ADMIN_COOKIE);
-}

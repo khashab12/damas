@@ -59,12 +59,36 @@ const MAX_WIDTH = 390; // < MIN_WIDTH * 2 (400)
 const MIN_HEIGHT = 270;
 const MAX_HEIGHT = 527;
 
+/**
+ * False while server-rendering and during hydration, true afterwards.
+ *
+ * `useSyncExternalStore` rather than `useState` + `useEffect(() => setMounted(true))`:
+ * that pattern sets state synchronously inside an effect, which schedules a
+ * second render pass React has no way to batch away — the cascading-render case
+ * the react-hooks lint rule exists to catch. Here React reads the server
+ * snapshot (false) while rendering on the server and the client snapshot (true)
+ * once hydrated, with no state write and no extra pass.
+ *
+ * The store never changes, so `subscribe` has nothing to notify; it just has to
+ * return an unsubscribe function. Both callbacks are module-level constants so
+ * their identity is stable across renders.
+ */
+const subscribeToNothing = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
+function useHydrated(): boolean {
+  return React.useSyncExternalStore(
+    subscribeToNothing,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+}
+
 function MenuBook() {
   // react-pageflip touches `document` during init, so only render on the client.
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useHydrated();
   const bookRef = React.useRef<FlipBookApi | null>(null);
-
-  React.useEffect(() => setMounted(true), []);
 
   // React's dev double-mount (StrictMode) mounts, unmounts, then remounts this
   // subtree. react-pageflip moves its pages into its own .stf__block on init but

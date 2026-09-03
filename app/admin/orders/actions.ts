@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { clearSession, grantSession, verifyPassword } from "@/lib/admin/auth";
+import { grantSession, verifyPassword } from "@/lib/admin/auth";
 
 /** Blunts online guessing. Not a substitute for a strong password, but it
  *  turns an unattended script from thousands of tries a second into a few. */
@@ -25,9 +25,4 @@ export async function signIn(formData: FormData): Promise<void> {
 
   await new Promise((resolve) => setTimeout(resolve, FAILED_ATTEMPT_DELAY_MS));
   redirect("/admin/orders?e=1");
-}
-
-export async function signOut(): Promise<void> {
-  await clearSession();
-  redirect("/admin/orders");
 }

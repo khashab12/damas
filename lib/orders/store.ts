@@ -25,6 +25,34 @@ import type { Order, OrderLine, OrderStore } from "./types";
 let pool: Pool | null = null;
 let schemaReady: Promise<void> | null = null;
 
+/**
+ * Removes `sslmode` (and `uselibpqcompat`, which only exists to reinterpret
+ * it) from a connection string, so TLS policy is decided by the `ssl` object
+ * in getPool rather than by the URL.
+ *
+ * Deliberately narrow: `sslcert` / `sslkey` / `sslrootcert` are left alone.
+ * Those name a specific certificate or CA the operator chose on purpose, and
+ * pg-connection-string turns them into an `ssl` object that still verifies by
+ * default — dropping them silently would be the dangerous move, not keeping
+ * them.
+ *
+ * A connection string that is not a URL (libpq's `host=... port=...` keyword
+ * form) is returned untouched: there is nothing to parse, and pg handles it.
+ */
+export function withoutSslMode(connectionString: string): string {
+  try {
+    const url = new URL(connectionString);
+    if (!url.searchParams.has("sslmode") && !url.searchParams.has("uselibpqcompat")) {
+      return connectionString;
+    }
+    url.searchParams.delete("sslmode");
+    url.searchParams.delete("uselibpqcompat");
+    return url.toString();
+  } catch {
+    return connectionString;
+  }
+}
+
 function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
@@ -39,23 +67,29 @@ function getPool(): Pool {
     // Managed Postgres (Neon/Supabase) requires TLS; a local instance has none,
     // so TLS is enabled for everything except localhost.
     //
-    // INTENT: sslmode=verify-full. `rejectUnauthorized: false` encrypts the
-    // connection but does not verify the server certificate; it is a stopgap,
-    // not the target state. The target is full verification - put
-    // `?sslmode=verify-full` in DATABASE_URL and drop this ssl override.
+    // TLS POLICY LIVES HERE, NOT IN THE URL. `sslmode` is stripped from the
+    // connection string first, because pg resolves the two in an order that is
+    // the opposite of what it looks like:
     //
-    // Why this is written down: pg v9 / pg-connection-string v3 change
-    // `sslmode=require` (and `prefer`/`verify-ca`) from their current alias for
-    // verify-full to libpq semantics - encrypt, do not verify. .env.example
-    // still suggests `sslmode=require`, so on that upgrade the URL silently
-    // stops meaning verify-full. Behaviour here does not change on the upgrade,
-    // because this explicit ssl object takes precedence over the URL - which is
-    // exactly why the intent has to live in the code and not only in the
-    // connection string.
+    //     config = Object.assign({}, config, parse(config.connectionString))
+    //         -- pg/lib/connection-parameters.js
+    //
+    // The URL wins. With `?sslmode=require` present, pg-connection-string sets
+    // `ssl = {}` and an explicit `ssl` passed to the Pool is DISCARDED — which
+    // is also the source of the pg v9 deprecation warning that `sslmode=require`
+    // will stop meaning verify-full. Removing the parameter leaves the object
+    // below as the only authority, so the setting and the behaviour agree.
+    //
+    // `rejectUnauthorized: true` is the real current behaviour, not a change:
+    // the discarded override read `false`, but `ssl = {}` means Node's TLS
+    // defaults, i.e. full verification. Writing it explicitly keeps that when
+    // pg v9 lands, instead of silently dropping to encrypt-without-verify.
+    // Neon and Supabase both present publicly-trusted certificates, so nothing
+    // extra is needed to verify them.
     const isLocal = /@(localhost|127\.0\.0\.1|\[::1\])[:/]/.test(connectionString);
     pool = new Pool({
-      connectionString,
-      ssl: isLocal ? false : { rejectUnauthorized: false },
+      connectionString: withoutSslMode(connectionString),
+      ssl: isLocal ? false : { rejectUnauthorized: true },
       max: 3,
       idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 10_000,
@@ -158,7 +192,7 @@ export type OrderRow = {
   updated_at: Date | string;
 };
 
-/** Row -> domain. Exported so the schema test can reuse it verbatim. */
+/** Row -> domain. */
 export function rowToOrder(row: OrderRow): Order {
   return {
     id: row.id,
@@ -177,7 +211,7 @@ export function rowToOrder(row: OrderRow): Order {
   };
 }
 
-/** Positional parameters for INSERT_SQL. Shared with the schema test. */
+/** Positional parameters for INSERT_SQL. */
 export function orderToParams(order: Order): unknown[] {
   return [
     order.id,
