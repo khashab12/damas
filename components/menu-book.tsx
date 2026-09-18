@@ -13,10 +13,12 @@ import {
   platterItems,
   mainItems,
   mealItems,
+  fishItems,
   sandwichItemsA,
   sandwichItemsB,
   MAINS_NOTE,
   MEALS_NOTE,
+  FISH_NOTE,
   SANDWICH_TAGLINE,
 } from "@/data/menu";
 
@@ -251,6 +253,13 @@ function MenuBook() {
             items={mealItems}
             note={MEALS_NOTE}
           />
+        </div>
+        <PageFooter />
+      </div>,
+
+      <div key="menu-fish" className="page with-footer" dir="rtl">
+        <div className="page-content menu-sheet">
+          <MenuCard title="وجبات السمك" items={fishItems} note={FISH_NOTE} />
         </div>
         <PageFooter />
       </div>,

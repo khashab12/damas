@@ -212,7 +212,12 @@
   align-items: stretch;
   gap: 0;
   border-bottom: 1px solid #efe6d6;
-  padding: clamp(0.2rem, 1.11cqw, 0.36rem) 0;
+  /* This is a FLOOR, not the rendered height: rows grow to fill the card, so
+     a sparse page never actually sits at it. It therefore has to be tight
+     enough for the densest page to fit -- الوجبات والطواجن at 9 rows plus its
+     note came to 338px of content in a 328px card and silently clipped the
+     note, because .page is overflow:hidden and the rows cannot shrink. */
+  padding: clamp(0.12rem, 0.72cqw, 0.3rem) 0;
   /* Each row takes an equal share of the card's leftover height, so a 5-row
      page ends up with taller, airier rows than a 12-row page instead of a
      short card marooned in white space. grow only -- flex-shrink stays 0 so a

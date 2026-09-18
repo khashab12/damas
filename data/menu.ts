@@ -2,28 +2,29 @@ import type { MenuItem } from "@/components/ui/menu-card";
 
 // Menu pages. Prices are in SAR, calories per serving.
 export const boxItems: MenuItem[] = [
-  { id: "box-01", name: "علبة فول كلاسك صغير", price: "2.5", calories: "220" },
-  { id: "box-02", name: "علبة فول كلاسك وسط", price: "4", calories: "250" },
-  { id: "box-03", name: "علبة فول كلاسك كبير", price: "6", calories: "280" },
+  { id: "box-01", name: "علبة فول كلاسيك صغير", price: "2.5", calories: "220" },
+  { id: "box-02", name: "علبة فول كلاسيك وسط", price: "4", calories: "250" },
+  { id: "box-03", name: "علبة فول كلاسيك كبير", price: "6", calories: "280" },
   { id: "box-04", name: "علبة عجين فلافل صغير", price: "3", calories: "210" },
   { id: "box-05", name: "علبة عجين فلافل كبير", price: "6", calories: "250" },
   {
     id: "box-06",
     name: "علبة بطاطس مهروسة صغير",
     price: "2.5",
-    calories: "120",
+    calories: "130",
   },
-  { id: "box-07", name: "علبة بطاطس مهروسة وسط", price: "4", calories: "180" },
-  { id: "box-08", name: "علبة بطاطس مهروسة كبير", price: "6", calories: "200" },
-  { id: "box-09", name: "علبة سلطة جبنة صغير", price: "3", calories: "180" },
-  { id: "box-10", name: "علبة سلطة جبنة وسط", price: "4", calories: "200" },
+  { id: "box-07", name: "علبة بطاطس مهروسة وسط", price: "4", calories: "160" },
+  { id: "box-08", name: "علبة بطاطس مهروسة كبير", price: "6", calories: "260" },
+  { id: "box-09", name: "علبة سلطة جبنة صغير", price: "2", calories: "180" },
+  { id: "box-10", name: "علبة سلطة جبنة وسط", price: "4", calories: "260" },
   { id: "box-11", name: "علبة سلطة جبنة كبير", price: "6", calories: "220" },
+  { id: "box-12", name: "علبة كبدة", price: "6", calories: "450" },
 ];
 
 export const dishItems: MenuItem[] = [
-  { id: "dish-01", name: "فلافل 2 حبة", price: "1", calories: "120" },
+  { id: "dish-01", name: "فلافل 3 حبة", price: "1", calories: "120" },
   { id: "dish-02", name: "حبة بيض مسلوق", price: "1.5", calories: "50" },
-  { id: "dish-03", name: "طبق بيض اومليت وسط", price: "4", calories: "100" },
+  { id: "dish-03", name: "طبق بيض اومليت وسط", price: "4", calories: "180" },
   { id: "dish-04", name: "طبق بيض اومليت كبير", price: "6", calories: "200" },
   {
     id: "dish-05",
@@ -35,14 +36,16 @@ export const dishItems: MenuItem[] = [
     id: "dish-06",
     name: "بطاطس شيبسي / أو صوابع كبير",
     price: "6",
-    calories: "300",
+    calories: "250",
   },
-  { id: "dish-07", name: "بطاطس شيبسي بالجبن", price: "3", calories: "250" },
+  { id: "dish-07", name: "بطاطس شيبسي بالجبن", price: "4", calories: "250" },
+  // Calories not supplied yet — left blank on purpose, fill in when known.
+  { id: "dish-08", name: "طبق كبدة سادة", price: "7", calories: "" },
 ];
 
 export const platterItems: MenuItem[] = [
   { id: "plat-01", name: "علبة بابا غنوج صغير", price: "2.5", calories: "120" },
-  { id: "plat-02", name: "علبة بابا غنوج وسط", price: "4", calories: "160" },
+  { id: "plat-02", name: "علبة بابا غنوج وسط", price: "4", calories: "120" },
   { id: "plat-03", name: "علبة بابا غنوج كبير", price: "6", calories: "200" },
   { id: "plat-04", name: "علبة مسقعة صغير", price: "2.5", calories: "130" },
   { id: "plat-05", name: "علبة مسقعة وسط", price: "4", calories: "170" },
@@ -50,19 +53,19 @@ export const platterItems: MenuItem[] = [
   {
     id: "plat-07",
     name: "علبة باذنجان حار صغير",
-    price: "2.5",
-    calories: "120",
+    price: "3",
+    calories: "130",
   },
   { id: "plat-08", name: "علبة باذنجان حار وسط", price: "4", calories: "180" },
-  { id: "plat-09", name: "علبة باذنجان حار كبير", price: "6", calories: "260" },
+  { id: "plat-09", name: "علبة باذنجان حار كبير", price: "6", calories: "280" },
 ];
 
 export const mainItems: MenuItem[] = [
   { id: "main-01", name: "طبق مشكل مقالي كبير", price: "15", calories: "300" },
   { id: "main-02", name: "طبق مشكل صغير", price: "10", calories: "250" },
-  { id: "main-03", name: "طبق ايدام صغير", price: "3", calories: "180" },
-  { id: "main-04", name: "طبق ايدام وسط", price: "5", calories: "200" },
-  { id: "main-05", name: "طبق ايدام كبير", price: "7", calories: "220" },
+  { id: "main-03", name: "طبق إدام صغير", price: "3", calories: "180" },
+  { id: "main-04", name: "طبق إدام وسط", price: "5", calories: "200" },
+  { id: "main-05", name: "طبق إدام كبير", price: "7", calories: "220" },
 ];
 
 // Long item names here; rows are allowed to wrap to two or three lines.
@@ -81,20 +84,44 @@ export const mealItems: MenuItem[] = [
   },
   {
     id: "meal-03",
-    name: "ربع دجاج فرن مع بطاطس ونفر رز وسلطة وشوربة",
+    name: "نص دجاج فرن مع بطاطس ونفر رز وسلطة وشوربة",
     price: "26",
     calories: "1100",
   },
   {
     id: "meal-04",
-    name: "نص دجاج فرن مع بطاطس ونفر رز وسلطة وشوربة",
+    name: "ربع دجاج فرن مع بطاطس ونفر رز وسلطة وشوربة",
     price: "15",
     calories: "820",
   },
   {
     id: "meal-05",
     name: "طاجن بطاطس باللحم مع نفر رز وسلطة وشوربة",
-    price: "25",
+    price: "27",
+    calories: "780",
+  },
+  {
+    id: "meal-06",
+    name: "طاجن عكاوي من نفر رز و سلطة و شوربة",
+    price: "27",
+    calories: "780",
+  },
+  {
+    id: "meal-07",
+    name: "طاجن كوارع مع نفر رز و سلطة وشوربة",
+    price: "35",
+    calories: "1100",
+  },
+  {
+    id: "meal-08",
+    name: "طاجن لحمة ضاني مع نفر رز و سلطة و شوربة",
+    price: "30",
+    calories: "820",
+  },
+  {
+    id: "meal-09",
+    name: "طاجن لحمة بالبصل مع نفر رز و سلطة و شوربة",
+    price: "27",
     calories: "780",
   },
 ];
@@ -104,7 +131,7 @@ export const mealItems: MenuItem[] = [
 export const sandwichItemsA: MenuItem[] = [
   {
     id: "sndA-01",
-    name: "ساندوتش فول كلاسك",
+    name: "ساندوتش فول كلاسيك",
     subtitle: "(فول + سلطة)",
     price: "2",
     calories: "250",
@@ -118,7 +145,7 @@ export const sandwichItemsA: MenuItem[] = [
   },
   {
     id: "sndA-03",
-    name: "ساندوتش فلافل كلاسك",
+    name: "ساندوتش فلافل كلاسيك",
     subtitle: "(فلافل + سلطة)",
     price: "2",
     calories: "280",
@@ -242,11 +269,23 @@ export const sandwichItemsB: MenuItem[] = [
   },
 ];
 
+// Friday-only fish menu — its own small page since it doesn't run every day.
+// Calories not supplied yet — left blank on purpose, fill in when known.
+export const fishItems: MenuItem[] = [
+  {
+    id: "fish-01",
+    name: "سمكة بلطي مقلية (مع رز وسلطة خضراء)",
+    price: "25",
+    calories: "",
+  },
+];
+
 // Notes shown under the rows of their respective menu pages.
 export const MAINS_NOTE =
   "يوجد كل يوم ثلاثة أصناف إضافية متنوعة حسب أسبقية الحجز";
 export const MEALS_NOTE = "(بامية أو خضار مشكل أو بازلا حسب الطلب)";
 export const SANDWICH_TAGLINE = "فول وفلافل ولاد البلد على اصوله";
+export const FISH_NOTE = "يوم الجمعة فقط";
 
 /* ---------------------------------------------------------------------------
  * Server-side catalogue.
@@ -272,6 +311,7 @@ const CATEGORIES: { label: string; items: MenuItem[] }[] = [
   { label: "أطباق وعلب", items: platterItems },
   { label: "الأطباق الرئيسية", items: mainItems },
   { label: "الوجبات والطواجن", items: mealItems },
+  { label: "وجبات السمك", items: fishItems },
   { label: "الساندوتشات ١", items: sandwichItemsA },
   { label: "الساندوتشات ٢", items: sandwichItemsB },
 ];
