@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { orderStore } from "@/lib/orders/store";
 import { ClearCartOnSuccess } from "@/components/cart/clear-cart-on-success";
+import { formatHalalas } from "@/lib/money";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,8 +13,6 @@ export default async function OrderSuccessPage({
 }) {
   const { id } = await searchParams;
   const order = id ? await orderStore.get(id) : null;
-  const riyals = (h: number) =>
-    Number.isInteger(h / 100) ? String(h / 100) : (h / 100).toFixed(2);
 
   return (
     <main className="order-result" dir="rtl">
@@ -39,7 +38,7 @@ export default async function OrderSuccessPage({
             </div>
             <div className="order-result-row">
               <span>الإجمالي</span>
-              <strong>{riyals(order.totalHalalas)} ريال</strong>
+              <strong>{formatHalalas(order.totalHalalas)} ريال</strong>
             </div>
             <div className="order-result-row">
               <span>الدفع</span>

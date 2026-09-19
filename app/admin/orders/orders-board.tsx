@@ -4,17 +4,13 @@ import * as React from "react";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/types";
 import { toSaudiE164 } from "@/lib/orders/phone";
+import { formatHalalas } from "@/lib/money";
 
 /** Poll cadence. Fast enough that a waiting customer is not a surprise, slow
  *  enough to be nothing on a Neon free tier. */
 const POLL_INTERVAL_MS = 15_000;
 
 type Scope = "today" | "all";
-
-const riyals = (halalas: number): string => {
-  const value = halalas / 100;
-  return Number.isInteger(value) ? String(value) : value.toFixed(2);
-};
 
 /**
  * Explicit timeZone and calendar, for two reasons: the server renders the
@@ -284,7 +280,7 @@ export function OrdersBoard({ initialOrders }: { initialOrders: Order[] }) {
                       <span className="admin-item-qty">{line.quantity}×</span>
                       <span className="admin-item-name">{line.name}</span>
                       <span className="admin-item-price">
-                        {riyals(line.lineTotalHalalas)}
+                        {formatHalalas(line.lineTotalHalalas)}
                       </span>
                     </li>
                   ))}
@@ -296,7 +292,7 @@ export function OrdersBoard({ initialOrders }: { initialOrders: Order[] }) {
 
                 <div className="admin-card-foot">
                   <span className="admin-total">
-                    {riyals(order.totalHalalas)} ريال
+                    {formatHalalas(order.totalHalalas)} ريال
                   </span>
 
                   <div className="admin-actions">

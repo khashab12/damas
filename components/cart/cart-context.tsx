@@ -137,6 +137,7 @@ export function useCart(): CartContextValue {
   return ctx;
 }
 
-/** Formats a SAR amount without trailing .00 */
-export const sar = (value: number): string =>
-  Number.isInteger(value) ? String(value) : value.toFixed(2);
+/* The cart works in riyals, not halalas, so it re-exports the riyal
+   formatter under the name its call sites already use. One
+   implementation now lives in lib/money.ts. */
+export { formatSar as sar } from "@/lib/money";
