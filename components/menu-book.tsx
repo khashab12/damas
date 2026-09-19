@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import HTMLFlipBook from "react-pageflip";
 import { FlipAffordance } from "@/components/ui/flip-affordance";
 import { LocationMap } from "@/components/ui/location-map";
@@ -38,14 +37,6 @@ const FlipBook = HTMLFlipBook as unknown as React.ComponentType<
     ref?: React.Ref<FlipBookApi>;
   }
 >;
-
-// Third inner page: offers. Images are 1080x1080 (1:1); the rendered size is
-// constrained in CSS so both fit the page at 375px.
-const OFFER_SIZE = 1080;
-const offerImages = [
-  { src: "/offers/offer-25.jpg", alt: "عرض ٢٥" },
-  { src: "/offers/offer-15.jpg", alt: "عرض ١٥" },
-];
 
 // Aspect ratio for the stretched page, not fixed pixels.
 const PAGE_WIDTH = 370;
@@ -200,7 +191,7 @@ function MenuBook() {
           playsInline
           // react-pageflip sets display:none on inactive pages, and a browser
           // will not begin a lazy/metadata-only load inside a display:none box
-          // -- the same trap that left the offer images blank. Force a full
+          // -- so anything lazy here would never start fetching. Force a full
           // preload so the cover is ready before it is ever shown.
           preload="auto"
           controls={false}
@@ -259,7 +250,16 @@ function MenuBook() {
 
       <div key="menu-fish" className="page with-footer" dir="rtl">
         <div className="page-content menu-sheet">
-          <MenuCard title="وجبات السمك" items={fishItems} note={FISH_NOTE} />
+          {/* --compact because this page carries a single Friday dish. Passed
+              explicitly rather than derived from items.length, matching how
+              --dense is applied on the sandwich pages: the page author picks
+              the density, so it stays predictable when items are added. */}
+          <MenuCard
+            title="وجبات السمك"
+            items={fishItems}
+            note={FISH_NOTE}
+            className="menu-card--compact"
+          />
         </div>
         <PageFooter />
       </div>,
@@ -283,36 +283,6 @@ function MenuBook() {
             note={SANDWICH_TAGLINE}
             className="menu-card--dense"
           />
-        </div>
-        <PageFooter />
-      </div>,
-
-      // Reuses the menu card chrome (.menu-card / .menu-card-head) rather than
-      // its own heading style, so the gold bar, radius and shadow match the
-      // menu pages exactly.
-      <div key="offers" className="page with-footer" dir="rtl">
-        <div className="page-content menu-sheet">
-          <div className="menu-card">
-            <div className="menu-card-head">العروض</div>
-            <div className="menu-card-body offers-body">
-              {offerImages.map((offer) => (
-                <Image
-                  key={offer.src}
-                  src={offer.src}
-                  alt={offer.alt}
-                  width={OFFER_SIZE}
-                  height={OFFER_SIZE}
-                  className="offer-img"
-                  // MUST stay eager. react-pageflip sets display:none on every
-                  // page that is not currently rendered, and a lazy image inside
-                  // a display:none box never intersects, so it never starts
-                  // loading. The page would then flip in with no images until the
-                  // fetch completed -- blank whenever the files are not cached.
-                  loading="eager"
-                />
-              ))}
-            </div>
-          </div>
         </div>
         <PageFooter />
       </div>,

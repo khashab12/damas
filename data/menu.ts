@@ -2,9 +2,9 @@ import type { MenuItem } from "@/components/ui/menu-card";
 
 // Menu pages. Prices are in SAR, calories per serving.
 export const boxItems: MenuItem[] = [
-  { id: "box-01", name: "علبة فول كلاسيك صغير", price: "2.5", calories: "220" },
-  { id: "box-02", name: "علبة فول كلاسيك وسط", price: "4", calories: "250" },
-  { id: "box-03", name: "علبة فول كلاسيك كبير", price: "6", calories: "280" },
+  { id: "box-01", name: "علبة فول كلاسك صغير", price: "2.5", calories: "220" },
+  { id: "box-02", name: "علبة فول كلاسك وسط", price: "4", calories: "250" },
+  { id: "box-03", name: "علبة فول كلاسك كبير", price: "6", calories: "280" },
   { id: "box-04", name: "علبة عجين فلافل صغير", price: "3", calories: "210" },
   { id: "box-05", name: "علبة عجين فلافل كبير", price: "6", calories: "250" },
   {
@@ -63,9 +63,9 @@ export const platterItems: MenuItem[] = [
 export const mainItems: MenuItem[] = [
   { id: "main-01", name: "طبق مشكل مقالي كبير", price: "15", calories: "300" },
   { id: "main-02", name: "طبق مشكل صغير", price: "10", calories: "250" },
-  { id: "main-03", name: "طبق إدام صغير", price: "3", calories: "180" },
-  { id: "main-04", name: "طبق إدام وسط", price: "5", calories: "200" },
-  { id: "main-05", name: "طبق إدام كبير", price: "7", calories: "220" },
+  { id: "main-03", name: "طبق ايدام صغير", price: "3", calories: "180" },
+  { id: "main-04", name: "طبق ايدام وسط", price: "5", calories: "200" },
+  { id: "main-05", name: "طبق ايدام كبير", price: "7", calories: "220" },
 ];
 
 // Long item names here; rows are allowed to wrap to two or three lines.
@@ -102,7 +102,7 @@ export const mealItems: MenuItem[] = [
   },
   {
     id: "meal-06",
-    name: "طاجن عكاوي من نفر رز و سلطة و شوربة",
+    name: "طاجن عكاوي مع نفر رز و سلطة و شوربة",
     price: "27",
     calories: "780",
   },
@@ -129,12 +129,15 @@ export const mealItems: MenuItem[] = [
 // Sandwiches. `subtitle` carries the ingredients line; the last four items on
 // page two deliberately have none.
 export const sandwichItemsA: MenuItem[] = [
+  // أول صنف في الصفحة، زي ترتيب اللستة الورقية. الـ id بيكمّل التسلسل
+  // (sndA-10) وليس الترتيب: الترتيب تحدده المصفوفة، والـ id ثابت للتسعير.
+  { id: "sndA-10", name: "ساندوتش كبدة", price: "6", calories: "400" },
   {
     id: "sndA-01",
-    name: "ساندوتش فول كلاسيك",
+    name: "ساندوتش فول كلاسك",
     subtitle: "(فول + سلطة)",
     price: "2",
-    calories: "250",
+    calories: "335",
   },
   {
     id: "sndA-02",
@@ -145,10 +148,10 @@ export const sandwichItemsA: MenuItem[] = [
   },
   {
     id: "sndA-03",
-    name: "ساندوتش فلافل كلاسيك",
+    name: "ساندوتش فلافل كلاسك",
     subtitle: "(فلافل + سلطة)",
     price: "2",
-    calories: "280",
+    calories: "200",
   },
   {
     id: "sndA-04",
@@ -183,7 +186,7 @@ export const sandwichItemsA: MenuItem[] = [
     name: "ساندوتش بطاطس صوابع",
     subtitle: "(بطاطس صوابع + سلطة)",
     price: "3",
-    calories: "280",
+    calories: "250",
   },
   {
     id: "sndA-09",
@@ -199,14 +202,14 @@ export const sandwichItemsB: MenuItem[] = [
     id: "sndB-01",
     name: "ساندوتش بيض مسلوق",
     subtitle: "(بيض مسلوق + سلطة)",
-    price: "5",
+    price: "4",
     calories: "330",
   },
   {
     id: "sndB-02",
-    name: "ساندوتش بيض اوملیت",
+    name: "ساندوتش بيض اومليت",
     subtitle: "(بيض اومليت + سلطة)",
-    price: "4",
+    price: "5",
     calories: "230",
   },
   {
@@ -220,14 +223,14 @@ export const sandwichItemsB: MenuItem[] = [
     id: "sndB-04",
     name: "ساندوتش بابا غنوج",
     subtitle: "(بابا غنوج + سلطة)",
-    price: "2",
+    price: "3",
     calories: "250",
   },
   {
     id: "sndB-05",
     name: "ساندوتش زهرة",
     subtitle: "(زهرة + سلطة)",
-    price: "2",
+    price: "3",
     calories: "250",
   },
   {
@@ -246,26 +249,26 @@ export const sandwichItemsB: MenuItem[] = [
   {
     id: "sndB-08",
     name: "ساندوتش بطاطس صوابع بالبيض",
-    price: "5",
+    price: "4",
     calories: "350",
   },
   {
     id: "sndB-09",
     name: "ساندوتش بطاطس شيبسي بالبيض",
-    price: "5",
+    price: "4",
     calories: "350",
   },
   {
     id: "sndB-10",
     name: "ساندوتش بتنجان مقلي مع سلطة وطحينة",
-    price: "2",
+    price: "3",
     calories: "230",
   },
   {
     id: "sndB-11",
     name: "ساندوتش بطاطس بانية مع سلطة وطحينة",
     price: "3",
-    calories: "300",
+    calories: "250",
   },
 ];
 
