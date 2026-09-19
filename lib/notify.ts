@@ -1,13 +1,16 @@
 import type { Order } from "@/lib/orders/types";
 import { createTelegramNotifier, readTelegramConfig } from "@/lib/telegram";
+import { formatHalalas } from "@/lib/money";
 
 /* ---------------------------------------------------------------------------
  * Restaurant notification.
  *
  * The channel sits behind `OrderNotifier` so Telegram / email / SMS can be
  * swapped without touching the route. The rendered message is also stored on
- * the order and returned by GET /api/orders/:id, so what was sent stays
- * inspectable even when the provider is down.
+ * the order row, so what was sent stays inspectable even when the provider is
+ * down — read it from the database, not over HTTP: the public endpoint that
+ * used to return it exposed the customer's name, phone and address to anyone
+ * holding an order id, and was removed.
  *
  * The default channel is Telegram when it is configured (lib/telegram.ts), and
  * the server log when it is not. Either way the order also lands on the
@@ -20,16 +23,11 @@ export interface OrderNotifier {
   send(order: Order, message: string): Promise<void>;
 }
 
-const riyals = (halalas: number): string => {
-  const value = halalas / 100;
-  return Number.isInteger(value) ? String(value) : value.toFixed(2);
-};
-
 /** Formatted Arabic order message for the restaurant. */
 export function formatOrderMessage(order: Order): string {
   const lines = order.lines.map(
     (line) =>
-      `• ${line.name} × ${line.quantity} — ${riyals(line.lineTotalHalalas)} ريال`,
+      `• ${line.name} × ${line.quantity} — ${formatHalalas(line.lineTotalHalalas)} ريال`,
   );
 
   const created = new Date(order.createdAt).toLocaleString("ar-SA", {
@@ -50,7 +48,7 @@ export function formatOrderMessage(order: Order): string {
     "الأصناف:",
     ...lines,
     "",
-    `الإجمالي: ${riyals(order.totalHalalas)} ريال`,
+    `الإجمالي: ${formatHalalas(order.totalHalalas)} ريال`,
     order.note ? `ملاحظات: ${order.note}` : null,
     "",
     "الدفع: عند الاستلام 💵",
