@@ -88,3 +88,9 @@ export async function grantSession(): Promise<void> {
     maxAge: COOKIE_MAX_AGE_SECONDS,
   });
 }
+
+/** Drops the session cookie. The shared password is unchanged, so signing out
+ *  ends this browser's session only — it does not lock anyone else out. */
+export async function clearSession(): Promise<void> {
+  (await cookies()).delete(ADMIN_COOKIE);
+}

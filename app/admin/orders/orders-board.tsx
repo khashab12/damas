@@ -5,6 +5,7 @@ import type { Order, OrderStatus } from "@/lib/orders/types";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/types";
 import { toSaudiE164 } from "@/lib/orders/phone";
 import { formatHalalas } from "@/lib/money";
+import { signOut } from "./actions";
 
 /** Poll cadence. Fast enough that a waiting customer is not a surprise, slow
  *  enough to be nothing on a Neon free tier. */
@@ -215,6 +216,14 @@ export function OrdersBoard({ initialOrders }: { initialOrders: Order[] }) {
               🔕 تفعيل صوت التنبيه
             </button>
           )}
+
+          {/* A plain form posting the Server Action: no client handler, and it
+              still works if this component's JS has not hydrated yet. */}
+          <form action={signOut}>
+            <button type="submit" className="admin-signout">
+              خروج
+            </button>
+          </form>
         </div>
       </header>
 

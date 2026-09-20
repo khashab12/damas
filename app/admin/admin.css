@@ -84,6 +84,28 @@
   background: var(--brand-red-dark);
 }
 
+/* Sign-out. Same pill shape and tap target as its neighbours in the header,
+   but muted rather than gold: it is the one control in the bar that ends the
+   session, so it should not compete with اليوم/الكل for attention. */
+.admin-signout {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(232, 220, 200, 0.28);
+  background: transparent;
+  color: var(--brand-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-signout:hover {
+  border-color: rgba(166, 14, 22, 0.55);
+  color: #ffb4b4;
+}
+
 /* ---- Board ---- */
 
 .admin-board {
